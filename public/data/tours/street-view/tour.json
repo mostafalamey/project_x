@@ -1,0 +1,48 @@
+{
+    "modelId": null,
+    "startSceneId": "entrance",
+    "scenes": [
+        {
+            "id": "entrance",
+            "image": "/data/tours/street-view/entrance.jpg",
+            "links": [
+                {
+                    "target": "plaza",
+                    "x": 2048,
+                    "y": 1024
+                },
+                {
+                    "target": "parking",
+                    "x": 1024,
+                    "y": 1024
+                }
+            ],
+            "initialView": {
+                "yaw": 0,
+                "pitch": 0,
+                "fov": 90
+            }
+        },
+        {
+            "id": "plaza",
+            "image": "/data/tours/street-view/plaza.jpg",
+            "links": [
+                {
+                    "target": "entrance",
+                    "x": 3072,
+                    "y": 1024
+                },
+                {
+                    "target": "garden",
+                    "x": 1536,
+                    "y": 1024
+                }
+            ],
+            "initialView": {
+                "yaw": 90,
+                "pitch": 0,
+                "fov": 90
+            }
+        }
+    ]
+}

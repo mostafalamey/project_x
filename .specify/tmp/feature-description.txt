@@ -1,0 +1,168 @@
+# Real Estate Complex Interactive Viewer
+
+## 🏗️ Project Overview
+
+Build a **React web application** for showcasing a **single residential or commercial complex**, with interactive navigation from **map view → master plan → building → floor → unit → 360° virtual tour**.
+
+The website will use **static images and JSON data** to define all buildings, floors, units, and tours.
+
+---
+
+### ⚙️ Tech Stack
+
+- **Framework:** React + Vite
+- **Styling:** TailwindCSS + Framer Motion
+- **360 Viewer:** `react-photo-sphere-viewer`
+- **State Management:** Zustand or simple React Context
+- **Data:** Local JSON files
+- **Hosting:** Any static host (Hostinger, Vercel, Netlify, Render)
+
+---
+
+### 🧭 Application Flow
+
+#### 1. Map View (Landing)
+
+- A **static map image** showing the complex and nearby landmarks.
+- Clicking a **landmark** triggers a smooth **SVG path animation** to that landmark.
+- Clicking the **complex location** zooms in and transitions to the **master plan view**.
+
+#### 2. Master Plan View
+
+- Isometric illustration of the complex (4–6 rotating image angles to simulate rotation).
+- Swiping left/right or clicking arrows cycles through these isometric views.
+- Buildings are **clickable areas** (defined via coordinates or SVG overlay).
+- Hovering shows building name and summary info (total floors, available units).
+- Clicking a building transitions to its **elevation view**.
+
+#### 3. Building Elevation View
+
+- Static elevation image.
+- Floors are clickable and highlight on hover.
+- Clicking a floor opens the **floor plan view**.
+
+#### 4. Floor Plan View
+
+- 2D plan image of the floor.
+- Units are clickable areas.
+- Hover shows tooltip with:
+
+  - Unit ID
+  - Area (m²)
+  - Bedrooms / Bathrooms
+  - Availability
+  - Price (optional)
+
+- Clicking a unit zooms in, dims other units, and opens a sidebar/modal with full details and “View Virtual Tour”.
+
+#### 5. Virtual Tour View
+
+- Implement using `react-photo-sphere-viewer`.
+- Each **unit** has a set of **pano scenes** defined in JSON.
+- Each pano scene includes:
+
+  {
+    "id": "living-room",
+    "image": "/tours/living-room.jpg",
+    "links": [
+      { "target": "kitchen", "x": 2000, "y": -500 },
+      { "target": "bedroom", "x": -1000, "y": -200 }
+    ]
+  }
+
+- Clicking hotspots transitions between linked scenes with fade animation.
+- Preload adjacent scenes for smoothness.
+
+#### 6. Street View Mode (Optional)
+
+- Uses the same `react-photo-sphere-viewer` setup.
+- Displays outdoor pano points connected by navigation hotspots.
+
+---
+
+### 🔍 Search & Filter Panel
+
+- Search panel or sidebar with filters:
+
+  - Area range (slider)
+  - Bedrooms
+  - Bathrooms
+  - Floor number
+  - Availability
+
+- Filters update a unit list or highlight units matching the criteria in the current view.
+- Filter logic reads from `/data/units.json`.
+
+---
+
+### 🗂️ File & Folder Structure Example
+
+/src
+  /components
+    MapView.jsx
+    MasterPlanView.jsx
+    BuildingView.jsx
+    FloorPlanView.jsx
+    UnitViewer.jsx
+    TourViewer.jsx
+    SearchPanel.jsx
+  /data
+    map.png
+    landmarks.json
+    masterplan/
+      iso1.png
+      iso2.png
+      buildings.json
+    buildings/
+      b11/
+        elevation.png
+        floors/
+          f3.png
+          f3.json
+    tours/
+      unit-b12-32/
+        living-room.jpg
+        kitchen.jpg
+        tour.json
+
+---
+
+### 💾 Hosting & Deployment
+
+- Host the static site on **Hostinger**, **Vercel**, **Netlify**, or any CDN.
+- All assets (images, JSONs, pano images) are stored locally or on CDN.
+- No backend required — all data is preloaded or fetched from `/public/data`.
+
+---
+
+### 💡 UI/UX Guidelines
+
+- Animated transitions between views (Framer Motion).
+- Hover and click effects for all interactive elements.
+- Responsive and mobile-friendly.
+- Dark/Light theme toggle.
+- Back navigation at each stage.
+- Optional preloader for large pano images.
+
+---
+
+### 🧩 Deliverables
+
+- A modular React app that can be cloned and reused for multiple projects.
+- Configuration documentation showing how to:
+
+  - Replace map/masterplan/building/floor images.
+  - Update JSON data for units.
+  - Define 360 tours.
+
+- One complete demo project (e.g. “Jiran Complex”) with dummy data.
+
+---
+
+### 🧠 Developer Notes
+
+- Use Framer Motion for smooth transitions (zoom, fade, slide).
+- Use TailwindCSS for all styling.
+- Use `react-photo-sphere-viewer` for 360 rendering and hotspot navigation.
+- Use `react-router-dom` for managing page navigation between stages.
+- Keep all building, floor, and tour data in `/public/data/`.

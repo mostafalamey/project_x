@@ -1,0 +1,41 @@
+{
+    "id": "b11",
+    "name": "North Tower",
+    "elevationImage": "/data/buildings/b11/elevation.png",
+    "floors": [
+        {
+            "id": "f3",
+            "number": 3,
+            "planImage": "/data/buildings/b11/floors/f3.jpg",
+            "elevationPolygons": [
+                [
+                    320,
+                    760,
+                    640,
+                    750,
+                    660,
+                    900,
+                    300,
+                    910
+                ]
+            ]
+        },
+        {
+            "id": "f2",
+            "number": 2,
+            "planImage": "/data/buildings/b11/floors/f2.png",
+            "elevationPolygons": [
+                [
+                    320,
+                    560,
+                    640,
+                    550,
+                    660,
+                    700,
+                    300,
+                    710
+                ]
+            ]
+        }
+    ]
+}

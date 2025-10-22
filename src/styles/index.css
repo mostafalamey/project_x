@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+a {
+  color: inherit;
+}
+
+/* Keyboard navigation focus styles */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #34d399; /* emerald-400 */
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Focus styles for interactive hotspots */
+.hotspot-focus:focus-visible {
+  outline: 3px solid #34d399;
+  outline-offset: 3px;
+  filter: brightness(1.2);
+}
+
+/* Ensure focus styles are visible on dark backgrounds */
+:focus-visible {
+  outline-color: #34d399;
+}
+
+/* Panorama hotspot pulse animation */
+@keyframes panorama-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+.panorama-pulse {
+  animation: panorama-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

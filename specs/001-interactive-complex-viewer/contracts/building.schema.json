@@ -1,0 +1,64 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/schemas/building.schema.json",
+    "title": "Building",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "elevationImage": {
+            "type": "string"
+        },
+        "floors": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/BuildingFloor"
+            },
+            "minItems": 1
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "elevationImage",
+        "floors"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "BuildingFloor": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "integer"
+                },
+                "planImage": {
+                    "type": "string"
+                },
+                "elevationPolygons": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        },
+                        "minItems": 6
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": [
+                "id",
+                "number",
+                "planImage"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

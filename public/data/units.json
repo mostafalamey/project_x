@@ -1,0 +1,25 @@
+[
+    {
+        "id": "unit-b12-32",
+        "modelId": "A-1",
+        "buildingId": "b11",
+        "floorId": "f3",
+        "availability": "Available",
+        "price": 540000
+    },
+    {
+        "id": "unit-b12-33",
+        "modelId": "B-2",
+        "buildingId": "b11",
+        "floorId": "f3",
+        "availability": "Available",
+        "price": 485000
+    },
+    {
+        "id": "unit-b10-18",
+        "modelId": "C-1",
+        "buildingId": "b10",
+        "floorId": "f2",
+        "availability": "Sold"
+    }
+]

@@ -1,0 +1,58 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/schemas/landmarks.schema.json",
+    "title": "Landmarks",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string"
+            },
+            "name": {
+                "type": "string"
+            },
+            "coords": {
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "x": {
+                                "type": "number"
+                            },
+                            "y": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "x",
+                            "y"
+                        ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        },
+                        "minItems": 6
+                    }
+                ]
+            },
+            "type": {
+                "type": "string",
+                "enum": [
+                    "complex",
+                    "poi"
+                ]
+            }
+        },
+        "required": [
+            "id",
+            "name",
+            "coords",
+            "type"
+        ],
+        "additionalProperties": false
+    }
+}

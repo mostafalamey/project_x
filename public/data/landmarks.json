@@ -1,0 +1,24 @@
+[
+    {
+        "id": "complex-gateway",
+        "name": "Aurora Gateway",
+        "coords": {
+            "x": 612,
+            "y": 318
+        },
+        "type": "complex"
+    },
+    {
+        "id": "metro-station",
+        "name": "Metro Station",
+        "coords": [
+            148,
+            502,
+            176,
+            488,
+            194,
+            516
+        ],
+        "type": "poi"
+    }
+]

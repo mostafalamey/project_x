@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aurora Complex - Interactive Viewer</title>
+    <script>
+      // Redirect to the base URL with hash for SPA routing
+      // This handles direct navigation to routes on static hosts like GitHub Pages
+      (function () {
+        var path = window.location.pathname;
+        var query = window.location.search;
+
+        // Only redirect if not already on the root
+        if (path !== "/" && path !== "/index.html") {
+          // Preserve the path as a hash route
+          var redirect = "/#" + path + query;
+          window.location.replace(redirect);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: #0f172a;
+        color: #f8fafc;
+        font-family: system-ui, -apple-system, sans-serif;
+      "
+    >
+      <div style="text-align: center">
+        <h1 style="font-size: 2rem; margin-bottom: 1rem">Redirecting...</h1>
+        <p style="color: #94a3b8">
+          If you are not redirected automatically, please click
+          <a href="/#/" style="color: #34d399; text-decoration: underline"
+            >here</a
+          >.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

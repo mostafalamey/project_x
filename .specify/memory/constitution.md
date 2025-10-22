@@ -1,50 +1,86 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: N/A → 1.0.0
+- Modified principles: Added
+	• P1 Static‑Only Delivery (NON‑NEGOTIABLE)
+	• P2 Zero Secrets & Write‑Safe
+	• P3 Deterministic Build Artifact
+	• P4 Accessibility & Basic Performance
+- Added sections: "Additional Constraints", "Development Workflow"
+- Removed sections: Template placeholders for Principles 5 and unnamed sections were consolidated/removed
+- Templates requiring updates:
+	✅ .specify/templates/plan-template.md (static app structure option, remove stale command file reference)
+	✅ .specify/templates/tasks-template.md (static‑app foundational tasks)
+	✅ .specify/templates/spec-template.md (static constraints hint)
+	⚠ .specify/templates/commands/* (no command templates present; reference removed in plan template)
+- Deferred TODOs:
+	• TODO(RATIFICATION_DATE): Original adoption date unknown; set when historically established
+-->
+
+# Project X Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### P1. Static‑Only Delivery (NON‑NEGOTIABLE)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+The application MUST be deliverable as static assets only: HTML, CSS, JS, and media
+files served from a static host. No server‑side code, serverless functions, runtime
+compute, or databases are permitted. Client‑side routing MUST work without custom
+server configuration (use hash‑based routing or pre‑rendered paths).
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+Rationale: Purely static delivery maximizes portability, lowers cost, and minimizes
+security surface area.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### P2. Zero Secrets & Write‑Safe
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+No secrets, API keys, or credentials MAY be embedded in client code or build
+artifacts. Any external integrations MUST be anonymous, read‑only, and publicly
+cacheable. Features requiring authenticated or write operations are out of scope for
+this static application.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Rationale: Front‑end secrets are not secret; limiting to read‑only anonymous access
+eliminates abuse and backend requirements.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### P3. Deterministic Build Artifact
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+A single build command MUST produce a complete, deterministic output directory
+named dist/ (preferred) or build/ containing index.html at the root and all required
+assets with relative paths. The artifact MUST be host‑agnostic (no environment‑specific
+runtime needed) and include a static 404.html or use hash routing so deep links resolve
+without server rewrites.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+Rationale: Standardized artifacts enable one‑step deploys to any static host.
+
+### P4. Accessibility & Basic Performance
+
+Baseline accessibility and performance are REQUIRED:
+
+- Images have descriptive alt text; interactive controls are keyboard accessible; sufficient color contrast is maintained.
+- Avoid blocking bundles: the largest JS bundle ≤ 200 KB gzipped; defer/async non‑critical scripts; optimize images.
+
+Rationale: Static sites must be fast and usable by default.
+
+## Additional Constraints
+
+- Hosting: Any static host (e.g., GitHub Pages, Netlify static deploy, S3+CDN). No serverless functions or custom servers.
+- Routing: Prefer hash‑based routing. If history API is used, include a static 404.html that mirrors index.html behavior where the host supports it.
+- Assets: Place public assets under public/ or src/assets and emit to dist/ with content‑hashed filenames where tooling supports it.
+
+## Development Workflow
+
+- Repository scope: single web client only; no backend or database code.
+- Scripts: Provide build (required) and dev (optional) scripts; build produces dist/.
+- Reviews: Each PR MUST include a Constitution Check confirming compliance with P1–P4.
+- Testing: Optional for static content; if present, limit to linting/format checks and basic link checking.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- Supremacy: This constitution governs the static web application and supersedes conflicting practices.
+- Amendments: Proposed via PR with a rationale and a summary of impacts. Upon merge, update version and Last Amended date.
+- Versioning: Semantic versioning for governance changes
+  - MAJOR: Backward‑incompatible changes to principles/governance
+  - MINOR: New principle/section or material expansion
+  - PATCH: Clarifications/typos/non‑semantic edits
+- Compliance: Reviewers MUST verify Constitution Check on every PR. A periodic (at least quarterly) compliance sweep is recommended for long‑lived projects.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): unknown; set when established | **Last Amended**: 2025-10-21

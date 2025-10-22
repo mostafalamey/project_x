@@ -1,0 +1,47 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/schemas/unit.schema.json",
+    "title": "Unit",
+    "description": "A specific unit instance with availability and pricing, referencing a model for specifications",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "Unique unit identifier (e.g., unit-b12-32)"
+        },
+        "modelId": {
+            "type": "string",
+            "description": "Reference to the model ID that defines this unit's specifications"
+        },
+        "buildingId": {
+            "type": "string",
+            "description": "Building identifier where this unit is located"
+        },
+        "floorId": {
+            "type": "string",
+            "description": "Floor identifier where this unit is located"
+        },
+        "availability": {
+            "type": "string",
+            "enum": [
+                "Available",
+                "Reserved",
+                "Sold"
+            ],
+            "description": "Current availability status"
+        },
+        "price": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Unit price (optional, may vary from base model)"
+        }
+    },
+    "required": [
+        "id",
+        "modelId",
+        "buildingId",
+        "floorId",
+        "availability"
+    ],
+    "additionalProperties": false
+}

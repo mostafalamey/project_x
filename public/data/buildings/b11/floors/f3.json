@@ -1,0 +1,30 @@
+{
+    "id": "f3",
+    "buildingId": "b11",
+    "number": 3,
+    "planImage": "/data/buildings/b11/floors/f3.jpg",
+    "units": [
+        {
+            "unitId": "unit-b12-32",
+            "shape": [
+                620,
+                410,
+                688,
+                388,
+                712,
+                452
+            ]
+        },
+        {
+            "unitId": "unit-b12-33",
+            "shape": [
+                548,
+                428,
+                600,
+                396,
+                636,
+                454
+            ]
+        }
+    ]
+}

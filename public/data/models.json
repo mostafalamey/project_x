@@ -1,0 +1,26 @@
+[
+    {
+        "id": "A-1",
+        "areaM2": 118,
+        "bedrooms": 3,
+        "bathrooms": 2,
+        "tourPath": "/data/tours/model-A-1/tour.json",
+        "imagePath": "/data/models/model-A-1.jpg"
+    },
+    {
+        "id": "B-2",
+        "areaM2": 102,
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "tourPath": null,
+        "imagePath": "/data/models/model-B-2.jpg"
+    },
+    {
+        "id": "C-1",
+        "areaM2": 86,
+        "bedrooms": 1,
+        "bathrooms": 1,
+        "tourPath": null,
+        "imagePath": "/data/models/model-C-1.jpg"
+    }
+]

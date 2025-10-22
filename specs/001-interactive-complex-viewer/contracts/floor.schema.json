@@ -1,0 +1,66 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/schemas/floor.schema.json",
+    "title": "Floor",
+    "description": "Floor plan with unit hotspots. Tooltip data is derived from unit and model data at runtime.",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "Floor identifier"
+        },
+        "buildingId": {
+            "type": "string",
+            "description": "Building identifier this floor belongs to"
+        },
+        "number": {
+            "type": "integer",
+            "description": "Floor number"
+        },
+        "planImage": {
+            "type": "string",
+            "description": "Path to the floor plan image"
+        },
+        "units": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/UnitHotspot"
+            },
+            "minItems": 0,
+            "description": "Interactive unit hotspots on the floor plan"
+        }
+    },
+    "required": [
+        "id",
+        "buildingId",
+        "number",
+        "planImage",
+        "units"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "UnitHotspot": {
+            "type": "object",
+            "description": "Interactive polygon hotspot for a unit on the floor plan",
+            "properties": {
+                "unitId": {
+                    "type": "string",
+                    "description": "Reference to the unit ID"
+                },
+                "shape": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "minItems": 6,
+                    "description": "Polygon coordinates as flat array [x1,y1,x2,y2,...]"
+                }
+            },
+            "required": [
+                "unitId",
+                "shape"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

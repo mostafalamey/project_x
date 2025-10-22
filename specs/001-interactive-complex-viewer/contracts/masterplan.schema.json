@@ -1,0 +1,135 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/schemas/masterplan.schema.json",
+    "title": "MasterPlan",
+    "type": "object",
+    "properties": {
+        "angles": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/MasterPlanAngle"
+            },
+            "minItems": 1
+        },
+        "buildings": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/MasterPlanBuilding"
+            },
+            "minItems": 1
+        }
+    },
+    "required": [
+        "angles",
+        "buildings"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "MasterPlanAngle": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "sequenceToNext": {
+                    "$ref": "#/definitions/MasterPlanSequence"
+                },
+                "hotspots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/MasterPlanHotspot"
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": [
+                "id",
+                "image",
+                "hotspots"
+            ],
+            "additionalProperties": false
+        },
+        "MasterPlanSequence": {
+            "type": "object",
+            "properties": {
+                "folder": {
+                    "type": "string"
+                },
+                "frameCount": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "filenamePattern": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "folder",
+                "frameCount"
+            ],
+            "additionalProperties": false
+        },
+        "MasterPlanHotspot": {
+            "type": "object",
+            "properties": {
+                "buildingId": {
+                    "type": "string"
+                },
+                "polygons": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        },
+                        "minItems": 6
+                    },
+                    "minItems": 1,
+                    "maxItems": 4
+                }
+            },
+            "required": [
+                "buildingId",
+                "polygons"
+            ],
+            "additionalProperties": false
+        },
+        "MasterPlanBuilding": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "object",
+                    "properties": {
+                        "totalFloors": {
+                            "type": "integer"
+                        },
+                        "availableUnits": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "required": [
+                        "totalFloors",
+                        "availableUnits"
+                    ],
+                    "additionalProperties": false
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "summary"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

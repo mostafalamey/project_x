@@ -1,23 +1,31 @@
 <!--
 Sync Impact Report
-- Version change: N/A → 1.0.0
-- Modified principles: Added
-	• P1 Static‑Only Delivery (NON‑NEGOTIABLE)
-	• P2 Zero Secrets & Write‑Safe
-	• P3 Deterministic Build Artifact
-	• P4 Accessibility & Basic Performance
-- Added sections: "Additional Constraints", "Development Workflow"
-- Removed sections: Template placeholders for Principles 5 and unnamed sections were consolidated/removed
+- Version change: 1.0.0 → 1.1.0
+- Modified principles: No changes to existing principles (P1-P4 remain stable)
+- Added sections: "Project Identity" section added with concrete project details
+- Removed sections: None
 - Templates requiring updates:
-	✅ .specify/templates/plan-template.md (static app structure option, remove stale command file reference)
-	✅ .specify/templates/tasks-template.md (static‑app foundational tasks)
-	✅ .specify/templates/spec-template.md (static constraints hint)
-	⚠ .specify/templates/commands/* (no command templates present; reference removed in plan template)
-- Deferred TODOs:
-	• TODO(RATIFICATION_DATE): Original adoption date unknown; set when historically established
+	✅ .specify/templates/plan-template.md (already aligned with static web app structure)
+	✅ .specify/templates/tasks-template.md (already includes static web app foundational tasks)
+	✅ .specify/templates/spec-template.md (already includes static web app constraints)
+	✅ No command templates directory exists (no action needed)
+	✅ README.md (already reflects constitution principles)
+	✅ package.json (build script produces dist/, meets P3 requirements)
+- Version bump rationale: MINOR (1.1.0) - Added Project Identity section with concrete values
+- Constitution now fully populated; RATIFICATION_DATE set to initial feature branch creation
+- Follow-up TODOs: None
 -->
 
-# Project X Constitution
+# Aurora Complex - Interactive Viewer Constitution
+
+## Project Identity
+
+**Project Name**: Aurora Complex - Interactive Viewer  
+**Repository**: project_x  
+**Purpose**: An immersive real estate exploration platform featuring 360° panoramic tours, interactive floor plans, and dynamic building visualizations  
+**Tech Stack**: React 18 + TypeScript, Vite, React Router (hash-based), TailwindCSS, Framer Motion, Photo Sphere Viewer  
+**Deployment Model**: Static hosting (Vercel, Netlify, GitHub Pages, or any static CDN)  
+**Data Strategy**: JSON-driven configuration files in `/public/data/`
 
 ## Core Principles
 
@@ -62,16 +70,24 @@ Rationale: Static sites must be fast and usable by default.
 
 ## Additional Constraints
 
-- Hosting: Any static host (e.g., GitHub Pages, Netlify static deploy, S3+CDN). No serverless functions or custom servers.
-- Routing: Prefer hash‑based routing. If history API is used, include a static 404.html that mirrors index.html behavior where the host supports it.
-- Assets: Place public assets under public/ or src/assets and emit to dist/ with content‑hashed filenames where tooling supports it.
+- **Hosting**: Any static host (GitHub Pages, Netlify, Vercel, Render). No serverless functions or custom servers permitted.
+- **Routing**: Hash‑based routing via React Router DOM (`HashRouter`). A static `404.html` is included as fallback.
+- **Assets**: Public assets stored in `public/` directory; build outputs to `dist/` with content-hashed filenames via Vite.
+- **Data Files**: All configuration data in `public/data/` as JSON files with corresponding JSON schemas in `specs/001-interactive-complex-viewer/contracts/`.
+- **Build Command**: Single `npm run build` command produces complete `dist/` artifact ready for deployment.
+- **Dependencies**: All runtime dependencies are client-side libraries; no server-side dependencies in production.
 
 ## Development Workflow
 
-- Repository scope: single web client only; no backend or database code.
-- Scripts: Provide build (required) and dev (optional) scripts; build produces dist/.
-- Reviews: Each PR MUST include a Constitution Check confirming compliance with P1–P4.
-- Testing: Optional for static content; if present, limit to linting/format checks and basic link checking.
+- **Repository Scope**: Single web client only; no backend or database code.
+- **Scripts**:
+  - `npm run build` (required) - produces `dist/` directory
+  - `npm run dev` (optional) - Vite development server
+  - `npm run lint` (optional) - ESLint validation
+  - `npm run preview` (optional) - preview production build locally
+- **Reviews**: Each PR MUST include a Constitution Check confirming compliance with P1–P4.
+- **Testing**: Linting via ESLint with TypeScript; format checks optional. Full test suite not required for static content.
+- **Git Workflow**: Feature branches from `master`, named `###-feature-name` pattern (e.g., `001-interactive-complex-viewer`).
 
 ## Governance
 
@@ -83,4 +99,4 @@ Rationale: Static sites must be fast and usable by default.
   - PATCH: Clarifications/typos/non‑semantic edits
 - Compliance: Reviewers MUST verify Constitution Check on every PR. A periodic (at least quarterly) compliance sweep is recommended for long‑lived projects.
 
-**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): unknown; set when established | **Last Amended**: 2025-10-21
+**Version**: 1.1.0 | **Ratified**: 2025-10-21 | **Last Amended**: 2025-10-23

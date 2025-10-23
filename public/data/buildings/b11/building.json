@@ -1,7 +1,7 @@
 {
     "id": "b11",
     "name": "North Tower",
-    "elevationImage": "/data/buildings/b11/elevation.png",
+    "elevationImage": "/data/buildings/b11/elevation.jpg",
     "floors": [
         {
             "id": "f3",

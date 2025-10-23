@@ -9,6 +9,14 @@
             "type": "string",
             "description": "Model identifier (e.g., A-1, B-2, C-3)"
         },
+        "title": {
+            "type": "string",
+            "description": "Display title for the model (e.g., 'Modern 3-Bedroom Apartment')"
+        },
+        "description": {
+            "type": "string",
+            "description": "Detailed description of the model"
+        },
         "areaM2": {
             "type": "number",
             "minimum": 0,
@@ -34,6 +42,30 @@
         "imagePath": {
             "type": "string",
             "description": "Path to the model preview/thumbnail image"
+        },
+        "rotation360": {
+            "type": "object",
+            "description": "360-degree rotation sequence configuration",
+            "properties": {
+                "folder": {
+                    "type": "string",
+                    "description": "Path to the folder containing rotation frames (e.g., '/data/models/model-A-1')"
+                },
+                "frameCount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Total number of rotation frames"
+                },
+                "filenamePattern": {
+                    "type": "string",
+                    "description": "Optional filename pattern with {index} placeholder (default: 'frame-{index}.jpg')"
+                }
+            },
+            "required": [
+                "folder",
+                "frameCount"
+            ],
+            "additionalProperties": false
         }
     },
     "required": [

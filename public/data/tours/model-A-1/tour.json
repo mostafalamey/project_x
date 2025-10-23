@@ -4,7 +4,7 @@
     "scenes": [
         {
             "id": "living",
-            "image": "/data/tours/unit-b12-32/living-room.jpg",
+            "image": "/data/tours/model-A-1/living-room.jpg",
             "links": [
                 {
                     "target": "kitchen",
@@ -20,7 +20,7 @@
         },
         {
             "id": "kitchen",
-            "image": "/data/tours/unit-b12-32/kitchen.jpg",
+            "image": "/data/tours/model-A-1/kitchen.jpg",
             "links": [
                 {
                     "target": "living",
@@ -41,7 +41,7 @@
         },
         {
             "id": "bedroom",
-            "image": "/data/tours/unit-b12-32/bedroom.jpg",
+            "image": "/data/tours/model-A-1/bedroom.jpg",
             "links": [
                 {
                     "target": "living",

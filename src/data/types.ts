@@ -13,6 +13,10 @@ export type MapData = {
 export type Landmark = {
   id: string;
   name: string;
+  description?: string;
+  image?: string;
+  distanceM?: number;
+  timeMin?: number;
   coords: Point2D | Polygon;
   type: "complex" | "poi";
 };
@@ -63,13 +67,22 @@ export type BuildingFloor = {
   elevationPolygons?: Polygon[];
 };
 
+export type ModelRotation360 = {
+  folder: string;
+  frameCount: number;
+  filenamePattern?: string;
+};
+
 export type Model = {
   id: string;
+  title?: string;
+  description?: string;
   areaM2: number;
   bedrooms: number;
   bathrooms: number;
   tourPath: string | null;
   imagePath: string;
+  rotation360?: ModelRotation360;
 };
 
 export type Floor = {

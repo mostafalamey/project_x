@@ -12,6 +12,20 @@
             "name": {
                 "type": "string"
             },
+            "description": {
+                "type": "string"
+            },
+            "image": {
+                "type": "string"
+            },
+            "distanceM": {
+                "type": "number",
+                "description": "Distance in meters"
+            },
+            "timeMin": {
+                "type": "number",
+                "description": "Walking time in minutes"
+            },
             "coords": {
                 "oneOf": [
                     {
@@ -50,6 +64,8 @@
         "required": [
             "id",
             "name",
+            "description",
+            "image",
             "coords",
             "type"
         ],

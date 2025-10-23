@@ -3,21 +3,49 @@ import { useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import type { Model } from "../data/types";
+import { useNavigationStore } from "../stores/navigationStore";
 
 type ModelListProps = {
   models: Model[];
   onModelSelect?: (model: Model) => void;
+  contextParams?: { building?: string; floor?: string; angle?: string }; // Context to preserve for back navigation
+  backLocation?: string; // Where to go back to when leaving ModelView
 };
 
-export const ModelList = ({ models, onModelSelect }: ModelListProps) => {
+export const ModelList = ({
+  models,
+  onModelSelect,
+  contextParams,
+  backLocation,
+}: ModelListProps) => {
   const navigate = useNavigate();
+  const { setModelBackLocation } = useNavigationStore();
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   const handleModelClick = (model: Model) => {
     onModelSelect?.(model);
-    // Navigate to master plan with this model highlighted
-    // Or could navigate to a sample unit of this model
-    // For now, just notify - the parent can handle navigation
+
+    // Store the back location before navigating
+    if (backLocation) {
+      console.log("ModelList: Storing back location:", backLocation);
+      setModelBackLocation(backLocation);
+    }
+
+    // Navigate to the model view for 360 rotation
+    if (contextParams) {
+      // Preserve building/floor/angle context for back navigation
+      const params = new URLSearchParams();
+
+      if (contextParams.building)
+        params.set("building", contextParams.building);
+      if (contextParams.floor) params.set("floor", contextParams.floor);
+      if (contextParams.angle) params.set("angle", contextParams.angle);
+
+      const query = params.toString();
+      navigate(query ? `/model/${model.id}?${query}` : `/model/${model.id}`);
+    } else {
+      navigate(`/model/${model.id}`);
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>, model: Model) => {

@@ -4,6 +4,8 @@ An immersive real estate exploration platform featuring 360° panoramic tours, i
 
 ## 🚀 Features
 
+### Core Navigation
+
 - **Interactive Map View**: Campus overview with landmark hotspots and animated navigation paths
 - **Master Plan Exploration**: 4-angle isometric views with smooth transitions and building selection
 - **Building Elevations**: Multi-floor building views with unit availability indicators
@@ -11,6 +13,18 @@ An immersive real estate exploration platform featuring 360° panoramic tours, i
 - **360° Panorama Tours**: Immersive virtual tours with scene-to-scene navigation
 - **Street View**: Outdoor panorama exploration accessible from master plan hotspots
 - **Model Browser**: Search and filter unit models by size, bedrooms, and bathrooms
+
+### Interactive Features ✨ NEW
+
+- **Zoom & Pan**: Mouse wheel/trackpad zoom (1x-5x) in all static views with smooth panning
+  - Keyboard controls: `+/-` to zoom, arrow keys to pan, `Escape` to reset
+  - Cursor-centered zoom for intuitive exploration
+  - Smart pan constraints keep content visible
+- **View Transitions**: Seamless zoom-through transitions between navigation levels
+  - Bidirectional animations (forward zooms IN, backward zooms OUT)
+  - Automatic direction detection with browser back button support
+  - Reduced motion support for accessibility
+  - Instant navigation with smooth 300ms transitions
 
 ## 🛠️ Tech Stack
 
@@ -50,17 +64,32 @@ project_x/
 │   └── 404.html                 # SPA fallback for static hosting
 ├── src/
 │   ├── components/              # Reusable UI components
+│   ├── contexts/                # React contexts
+│   │   └── TransitionContext.tsx  # View transition state
 │   ├── data/                    # Data loaders and types
+│   ├── hooks/                   # Custom React hooks
+│   │   ├── useZoomPan.ts        # Zoom/pan state management
+│   │   ├── usePointerPan.ts     # Drag panning handler
+│   │   └── useKeyboard.ts       # Keyboard controls
 │   ├── pages/                   # Route pages
 │   ├── routes/                  # Routing configuration
 │   ├── styles/                  # Global styles
-│   └── types/                   # TypeScript declarations
+│   ├── types/                   # TypeScript declarations
+│   │   └── zoom-pan.d.ts        # Zoom/pan type definitions
+│   └── utils/                   # Utility functions
+│       ├── accessibility.ts     # A11y helpers (reduced motion, ARIA)
+│       └── animation.ts         # Animation utilities
 └── specs/                       # Project documentation
-    └── 001-interactive-complex-viewer/
-        ├── spec.md              # Feature specification
-        ├── data-model.md        # Data structure docs
-        ├── tasks.md             # Implementation checklist
-        └── contracts/           # JSON schemas
+    ├── 001-interactive-complex-viewer/
+    │   ├── spec.md              # Feature specification
+    │   ├── data-model.md        # Data structure docs
+    │   ├── tasks.md             # Implementation checklist
+    │   └── contracts/           # JSON schemas
+    └── 002-zoom-pan-transitions/
+        ├── spec.md              # Zoom/pan feature spec
+        ├── plan.md              # Technical architecture
+        ├── tasks.md             # Implementation tasks
+        └── data-model.md        # Type definitions
 
 ```
 
@@ -111,7 +140,26 @@ npm run lint
 
 The app will run at `http://localhost:5173` (default Vite port).
 
-## 📝 Adding Data
+## � Implementation Status
+
+### ✅ Completed Features
+
+- **Feature 001**: Interactive Complex Viewer (Map, MasterPlan, Building, Floor, Tour views)
+- **Feature 002**: Zoom, Pan, and View Transitions
+  - User Story 1: Zoom/pan in all static views (P1) ✅
+  - User Story 2: Bidirectional view transitions (P2) ✅
+
+### 🔄 In Progress
+
+- None - MVP complete!
+
+### 📋 Planned
+
+- Mobile touch gestures (pinch-to-zoom, swipe)
+- Performance optimizations for large floor plans
+- Additional accessibility enhancements
+
+## �📝 Adding Data
 
 ### Add a New Building
 
@@ -191,11 +239,16 @@ No environment variables required - all data is static JSON.
 
 ## ♿ Accessibility
 
-- Keyboard navigation fully supported (Tab, Enter, Space)
-- ARIA labels on all interactive elements
-- Focus styles visible on all controls
-- Screen reader compatible
-- Alt text on all images
+- **Keyboard navigation** fully supported:
+  - Tab, Enter, Space for navigation
+  - `+/-` keys for zoom in/out
+  - Arrow keys for panning
+  - `Escape` to reset zoom
+- **ARIA labels** on all interactive elements
+- **Focus styles** visible on all controls
+- **Screen reader** compatible with zoom level announcements
+- **Reduced motion** support - respects `prefers-reduced-motion` preference
+- **Alt text** on all images
 
 ## 📄 License
 

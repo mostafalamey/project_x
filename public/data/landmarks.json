@@ -2,15 +2,10 @@
     {
         "id": "complex-gateway",
         "name": "Aurora Gateway",
-        "coords": {
-            "x": 612,
-            "y": 318
-        },
-        "type": "complex"
-    },
-    {
-        "id": "metro-station",
-        "name": "Metro Station",
+        "description": "The main entrance to the Aurora complex, featuring modern architecture and lush landscaping.",
+        "image": "aurora-gateway.jpg",
+        "distanceM": 0,
+        "timeMin": 0,
         "coords": [
             148,
             502,
@@ -19,6 +14,19 @@
             194,
             516
         ],
+        "type": "complex"
+    },
+    {
+        "id": "metro-station",
+        "name": "Metro Station",
+        "description": "A bustling underground station connecting various lines.",
+        "image": "metro-station.jpg",
+        "distanceM": 7,
+        "timeMin": 10,
+        "coords": {
+            "x": 612,
+            "y": 318
+        },
         "type": "poi"
     }
 ]

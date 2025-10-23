@@ -6,8 +6,11 @@
   color-scheme: light dark;
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent scrollbars during transitions */
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   background-color: #0f172a;

@@ -1,3 +1,5 @@
+import { AnimatePresence, motion } from "framer-motion";
+import { X, Loader2 } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -9,15 +11,27 @@ import {
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { BackNav } from "../components/BackNav";
+import { BrowseModelsButton } from "../components/BrowseModelsButton";
+import { ModelList } from "../components/ModelList";
+import { SearchPanel } from "../components/SearchPanel";
+import { Tooltip } from "../components/Tooltip";
+import { useTransitionContext } from "../contexts/TransitionContext";
 import {
   deriveTourId,
   enrichFloorData,
+  filterModels,
   getUnitTourPath,
   type EnrichedFloor,
   type EnrichedUnitHotspot,
+  type ModelFilters,
 } from "../data/enrichment";
 import { loadFloor, loadModels, loadUnits } from "../data/loaders";
 import type { Model, Unit } from "../data/types";
+import { useKeyboard } from "../hooks/useKeyboard";
+import { usePointerPan } from "../hooks/usePointerPan";
+import { useZoomPan } from "../hooks/useZoomPan";
+import { useNavigationStore } from "../stores/navigationStore";
+import { prefersReducedMotion } from "../utils/accessibility";
 
 type FetchState<T> = {
   status: "idle" | "loading" | "error" | "success";
@@ -191,16 +205,110 @@ export const FloorPlanView = () => {
   const { buildingId, floorId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { direction } = useTransitionContext();
+  const { setTourBackLocation } = useNavigationStore();
   const [state, setState] = useState<FetchState<EnrichedFloor>>(initialState);
   const [hoveredUnitId, setHoveredUnitId] = useState<string | null>(null);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
   const isUnitSelected = Boolean(selectedUnitId);
+
+  const reducedMotion = prefersReducedMotion();
+
+  // Determine animation variants based on direction
+  const exitVariant = reducedMotion
+    ? { opacity: 0 } // opacity only for reduced motion
+    : direction === "backward"
+    ? { opacity: 0, scale: 0.7 } // zoom OUT when going back
+    : { opacity: 0, scale: 1.5 }; // zoom IN when going forward
+
+  const initialVariant = reducedMotion
+    ? { opacity: 0 } // opacity only for reduced motion
+    : direction === "backward"
+    ? { opacity: 0, scale: 1.5 } // start zoomed IN when coming from deeper level
+    : { opacity: 0, scale: 0.7 }; // start zoomed OUT when coming from shallower level
   const [unitLookup, setUnitLookup] = useState<Map<string, Unit> | null>(null);
   const [modelLookup, setModelLookup] = useState<Map<string, Model> | null>(
     null
   );
   const [unitLoadError, setUnitLoadError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Search/Models state
+  const [showSearch, setShowSearch] = useState(false);
+  const [modelsState, setModelsState] =
+    useState<FetchState<Model[]>>(initialState);
+  const [filters, setFilters] = useState<ModelFilters>({});
+  const [filteredModels, setFilteredModels] = useState<Model[]>([]);
+
+  // Zoom/pan state
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const updateSize = () => {
+      if (containerRef.current) {
+        setContainerSize({
+          width: containerRef.current.clientWidth,
+          height: containerRef.current.clientHeight,
+        });
+      }
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  const {
+    state: zoomPanState,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    panBy,
+    setInteracting,
+  } = useZoomPan(containerSize, containerSize); // Use containerSize for both since content fills container
+
+  // Pointer-based panning (mouse drag)
+  const { pointerHandlers } = usePointerPan({
+    enabled: zoomPanState.zoom > 1 && !showSearch,
+    onPanStart: () => setInteracting(true),
+    onPan: (delta) => panBy(delta),
+    onPanEnd: () => setInteracting(false),
+  });
+
+  // Keyboard controls
+  useKeyboard({
+    onZoomIn: () => zoomIn(),
+    onZoomOut: () => zoomOut(),
+    onResetZoom: resetZoom,
+    onPan: (dx, dy) => panBy({ x: dx, y: dy }),
+    enabled: !showSearch, // Disable when search panel is open
+  });
+
+  // Wheel zoom handler
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+
+      const rect = container.getBoundingClientRect();
+      const originX = event.clientX - rect.left - rect.width / 2;
+      const originY = event.clientY - rect.top - rect.height / 2;
+
+      if (event.deltaY < 0) {
+        zoomIn({ x: originX, y: originY });
+      } else {
+        zoomOut({ x: originX, y: originY });
+      }
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, [zoomIn, zoomOut]);
 
   useEffect(() => {
     const planImage = state.data?.planImage;
@@ -281,6 +389,60 @@ export const FloorPlanView = () => {
     };
   }, [buildingId, floorId]);
 
+  // Load models when search panel is opened
+  useEffect(() => {
+    if (!showSearch) {
+      return;
+    }
+
+    if (modelsState.status !== "idle") {
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchModels = async () => {
+      setModelsState((prev) => ({ ...prev, status: "loading", error: null }));
+
+      try {
+        const data = await loadModels();
+
+        if (!cancelled) {
+          setModelsState({ status: "success", data, error: null });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setModelsState({
+            status: "error",
+            data: null,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Unable to load models data",
+          });
+        }
+      }
+    };
+
+    fetchModels();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showSearch]);
+
+  // Apply filters
+  useEffect(() => {
+    if (modelsState.status !== "success" || !modelsState.data) {
+      setFilteredModels([]);
+      return;
+    }
+
+    const filtered = filterModels(modelsState.data, filters);
+    setFilteredModels(filtered);
+  }, [filters, modelsState]);
+
   const backHref = useMemo(() => {
     if (!buildingId) {
       return "/masterplan";
@@ -336,9 +498,34 @@ export const FloorPlanView = () => {
         params.set("angle", angle);
       }
 
-      navigate(`/tour/${tourId}?${params.toString()}`);
+      // Store the floor plan location as the back location
+      const backParams = new URLSearchParams();
+      if (angle) {
+        backParams.set("angle", angle);
+      }
+      const backQuery = backParams.toString();
+      const backUrl = backQuery
+        ? `/building/${buildingId}/floor/${floorId}?${backQuery}`
+        : `/building/${buildingId}/floor/${floorId}`;
+
+      console.log(
+        "FloorPlanView: Storing back location for unit tour:",
+        backUrl
+      );
+      setTourBackLocation(backUrl);
+
+      // Navigate to tour without query params
+      navigate(`/tour/${tourId}`);
     },
-    [unitLookup, modelLookup, buildingId, floorId, navigate, searchParams]
+    [
+      unitLookup,
+      modelLookup,
+      buildingId,
+      floorId,
+      navigate,
+      searchParams,
+      setTourBackLocation,
+    ]
   );
 
   const selectedUnit = useMemo(() => {
@@ -551,244 +738,351 @@ export const FloorPlanView = () => {
   }, [selectedUnit]);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-slate-950 text-slate-100">
-      <div className="absolute inset-0 z-10">
-        <div className="relative h-full w-full">
-          <svg
-            className="pointer-events-auto h-full w-full"
-            viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
-            preserveAspectRatio="xMidYMid slice"
-            role="img"
-            aria-label={
-              state.data
-                ? `Floor ${state.data.number} plan with interactive unit hotspots`
-                : "Floor plan"
-            }
-          >
-            <g transform={animatedTransform.matrix}>
-              {state.data?.planImage && !imageError ? (
-                <image
-                  href={state.data.planImage}
-                  width={VIEWBOX_WIDTH}
-                  height={VIEWBOX_HEIGHT}
-                  preserveAspectRatio="xMidYMid slice"
-                  aria-label={
-                    state.data
-                      ? `Floor ${state.data.number} plan image`
-                      : "Floor plan"
-                  }
-                />
-              ) : (
-                <g>
-                  <rect
+    <motion.div
+      className="h-screen w-screen"
+      initial={initialVariant}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={exitVariant}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
+      <div
+        ref={containerRef}
+        className="relative h-screen w-screen overflow-hidden bg-slate-950 text-slate-100"
+        {...pointerHandlers}
+      >
+        <div
+          className="absolute inset-0 z-10"
+          style={{
+            transform: `scale(${zoomPanState.zoom}) translate(${
+              zoomPanState.pan.x / zoomPanState.zoom
+            }px, ${zoomPanState.pan.y / zoomPanState.zoom}px)`,
+            transformOrigin: "center center",
+            transition: zoomPanState.isInteracting
+              ? "none"
+              : "transform 0.3s ease-out",
+          }}
+        >
+          <div className="relative h-full w-full">
+            <svg
+              className="pointer-events-auto h-full w-full"
+              viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+              preserveAspectRatio="xMidYMid slice"
+              role="img"
+              aria-label={
+                state.data
+                  ? `Floor ${state.data.number} plan with interactive unit hotspots`
+                  : "Floor plan"
+              }
+            >
+              <g transform={animatedTransform.matrix}>
+                {state.data?.planImage && !imageError ? (
+                  <image
+                    href={state.data.planImage}
                     width={VIEWBOX_WIDTH}
                     height={VIEWBOX_HEIGHT}
-                    fill="url(#plan-placeholder-gradient)"
-                  />
-                  <text
-                    x={VIEWBOX_WIDTH / 2}
-                    y={VIEWBOX_HEIGHT / 2}
-                    textAnchor="middle"
-                    className="fill-slate-400 text-sm"
-                  >
-                    Floor plan imagery unavailable
-                  </text>
-                  <defs>
-                    <linearGradient
-                      id="plan-placeholder-gradient"
-                      x1="0%"
-                      x2="100%"
-                      y1="0%"
-                      y2="100%"
-                    >
-                      <stop offset="0%" stopColor="#0f172a" />
-                      <stop offset="100%" stopColor="#020617" />
-                    </linearGradient>
-                  </defs>
-                </g>
-              )}
-              {state.data?.units.map((unit) => {
-                const isHovered = hoveredUnitId === unit.unitId;
-                const isSelected = selectedUnitId === unit.unitId;
-                const bounds = getPolygonBounds(unit.shape);
-                const transform = isSelected
-                  ? `translate(${bounds.centerX} ${
-                      bounds.centerY
-                    }) scale(1.05) translate(${-bounds.centerX} ${-bounds.centerY})`
-                  : undefined;
-                const polygonClassName = (() => {
-                  if (isSelected) {
-                    return "fill-transparent stroke-emerald-200";
-                  }
-
-                  if (isUnitSelected) {
-                    return isHovered
-                      ? "fill-slate-900/60 stroke-emerald-200/40"
-                      : "fill-slate-950/80 stroke-slate-700/70";
-                  }
-
-                  return isHovered
-                    ? "fill-emerald-400/35 stroke-emerald-100"
-                    : "fill-emerald-400/18 stroke-emerald-200/70";
-                })();
-
-                return (
-                  <g
-                    key={unit.unitId}
-                    className="cursor-pointer transition-transform duration-500 ease-out focus:outline-none"
-                    transform={transform}
-                    onClick={() => handleUnitActivate(unit)}
-                    onMouseEnter={() => setHoveredUnitId(unit.unitId)}
-                    onMouseLeave={resetHover}
-                    onFocus={() => {
-                      setHoveredUnitId(unit.unitId);
-                    }}
-                    onBlur={resetHover}
-                    onKeyDown={(event) =>
-                      handleKeyActivation(event, () => handleUnitActivate(unit))
+                    preserveAspectRatio="xMidYMid slice"
+                    aria-label={
+                      state.data
+                        ? `Floor ${state.data.number} plan image`
+                        : "Floor plan"
                     }
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Inspect unit ${unit.unitId}`}
-                  >
-                    <polygon
-                      points={toPointString(unit.shape)}
-                      className={`${polygonClassName} stroke-[3px] transition-colors duration-300`}
-                      vectorEffect="non-scaling-stroke"
+                  />
+                ) : (
+                  <g>
+                    <rect
+                      width={VIEWBOX_WIDTH}
+                      height={VIEWBOX_HEIGHT}
+                      fill="url(#plan-placeholder-gradient)"
                     />
+                    <text
+                      x={VIEWBOX_WIDTH / 2}
+                      y={VIEWBOX_HEIGHT / 2}
+                      textAnchor="middle"
+                      className="fill-slate-400 text-sm"
+                    >
+                      Floor plan imagery unavailable
+                    </text>
+                    <defs>
+                      <linearGradient
+                        id="plan-placeholder-gradient"
+                        x1="0%"
+                        x2="100%"
+                        y1="0%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" stopColor="#0f172a" />
+                        <stop offset="100%" stopColor="#020617" />
+                      </linearGradient>
+                    </defs>
                   </g>
-                );
-              })}
-              {hoveredUnit && hoveredTooltipFrame ? (
-                <g transform={`scale(${1 / tooltipScale})`}>
-                  <foreignObject
-                    x={hoveredTooltipFrame.x * tooltipScale}
-                    y={hoveredTooltipFrame.y * tooltipScale}
-                    width={hoveredTooltipFrame.width * tooltipScale}
-                    height={hoveredTooltipFrame.height * tooltipScale}
-                    pointerEvents="none"
-                  >
-                    <div className="rounded-xl bg-slate-900/85 px-4 py-3 text-left shadow-xl shadow-slate-950/50">
-                      <p className="text-[0.65rem] uppercase tracking-[0.35em] text-emerald-300">
-                        {hoveredUnit.tooltip.modelId}
-                      </p>
-                      <p className="mt-1 text-sm font-medium text-slate-100">
-                        {hoveredUnit.tooltip.areaM2} m^2 ·{" "}
-                        {hoveredUnit.tooltip.bedrooms} bed ·{" "}
-                        {hoveredUnit.tooltip.bathrooms} bath
-                      </p>
-                      <p className="mt-1 text-[0.75rem] text-slate-400">
-                        Status: {hoveredUnit.tooltip.availability}
-                      </p>
-                    </div>
-                  </foreignObject>
-                </g>
-              ) : null}
-            </g>
-          </svg>
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/70 via-transparent to-slate-950/80" />
-        </div>
-      </div>
-      <div className="pointer-events-none absolute inset-0 z-30 flex flex-col justify-between p-8 sm:p-12">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="pointer-events-auto flex flex-col gap-4">
-            <BackNav label="Building" to={backHref} />
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-[0.45em] text-emerald-300">
-                {state.data?.id ?? floorId ?? "Floor"}
-              </span>
-              <h1 className="mt-3 text-4xl font-bold sm:text-5xl">
-                {state.data ? `Floor ${state.data.number}` : "Floor Plan"}
-              </h1>
-              <p className="mt-3 max-w-xl text-sm text-slate-200">
-                Explore the full floor layout. Hover units to preview key stats,
-                then select a unit to focus its outline and open the quick
-                details panel with a direct link to the 360 tour.
-              </p>
-            </div>
+                )}
+                {state.data?.units.map((unit) => {
+                  const isHovered = hoveredUnitId === unit.unitId;
+                  const isSelected = selectedUnitId === unit.unitId;
+                  const hasHoveredUnit = hoveredUnitId !== null;
+                  const bounds = getPolygonBounds(unit.shape);
+                  const polygonClassName = (() => {
+                    if (isSelected) {
+                      return "fill-transparent stroke-emerald-200";
+                    }
+
+                    if (isUnitSelected) {
+                      return isHovered
+                        ? "fill-slate-900/60 stroke-emerald-200/40"
+                        : "fill-transparent stroke-slate-700/40";
+                    }
+
+                    if (isHovered) {
+                      return "fill-emerald-400/35 stroke-emerald-100";
+                    }
+
+                    return hasHoveredUnit
+                      ? "fill-slate-950/50 stroke-emerald-200/50"
+                      : "fill-transparent stroke-emerald-200/50";
+                  })();
+
+                  return (
+                    <g
+                      key={unit.unitId}
+                      className="cursor-pointer transition-transform duration-500 ease-out focus:outline-none"
+                      onClick={() => handleUnitActivate(unit)}
+                      onMouseEnter={() => setHoveredUnitId(unit.unitId)}
+                      onMouseLeave={resetHover}
+                      onFocus={() => {
+                        setHoveredUnitId(unit.unitId);
+                      }}
+                      onBlur={resetHover}
+                      onKeyDown={(event) =>
+                        handleKeyActivation(event, () =>
+                          handleUnitActivate(unit)
+                        )
+                      }
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Inspect unit ${unit.unitId}`}
+                    >
+                      <polygon
+                        points={toPointString(unit.shape)}
+                        className={`${polygonClassName} stroke-[2px] transition-colors duration-300`}
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </g>
+                  );
+                })}
+                <AnimatePresence>
+                  {hoveredUnit && hoveredTooltipFrame ? (
+                    <motion.g
+                      key={hoveredUnit.unitId}
+                      transform={`scale(${1 / tooltipScale})`}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <foreignObject
+                        x={hoveredTooltipFrame.x * tooltipScale}
+                        y={hoveredTooltipFrame.y * tooltipScale}
+                        width={hoveredTooltipFrame.width * tooltipScale}
+                        height={hoveredTooltipFrame.height * tooltipScale}
+                        pointerEvents="none"
+                      >
+                        <Tooltip
+                          title={hoveredUnit.tooltip.modelId}
+                          content={`${hoveredUnit.tooltip.areaM2} m^2 · ${hoveredUnit.tooltip.bedrooms} bed · ${hoveredUnit.tooltip.bathrooms} bath`}
+                          footer={`Status: ${hoveredUnit.tooltip.availability}`}
+                        />
+                      </foreignObject>
+                    </motion.g>
+                  ) : null}
+                </AnimatePresence>
+              </g>
+            </svg>
+            {/* Gradient overlays for readability */}
+            <div className="pointer-events-none absolute inset-0 h-1/3 bg-gradient-to-b from-slate-950/70 to-transparent" />
+            <div className="pointer-events-none absolute bottom-0 inset-x-0 h-1/4 bg-gradient-to-t from-slate-950/70 to-transparent" />
           </div>
-          {state.data ? (
-            <div className="pointer-events-auto flex flex-col items-end gap-2 rounded-3xl border border-slate-700/60 bg-slate-900/55 px-6 py-4 text-xs uppercase tracking-[0.45em] text-slate-200">
-              <span>Total units · {unitSummary.total}</span>
-              <span>Available · {unitSummary.available}</span>
-              <span>Reserved · {unitSummary.reserved}</span>
-              <span>Sold · {unitSummary.sold}</span>
+        </div>
+
+        <div className="pointer-events-none absolute inset-0 z-30 flex flex-col justify-between p-8 sm:p-12">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+            <div className="pointer-events-auto flex flex-col gap-4">
+              <BackNav label="Building" to={backHref} />
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-[0.45em] text-emerald-300">
+                  {state.data?.id ?? floorId ?? "Floor"}
+                </span>
+                <h1 className="mt-3 text-4xl font-bold sm:text-5xl">
+                  {state.data ? `Floor ${state.data.number}` : "Floor Plan"}
+                </h1>
+                <p className="mt-3 max-w-xl text-sm text-slate-200">
+                  Explore the full floor layout. Hover units to preview key
+                  stats, then select a unit to focus its outline and open the
+                  quick details panel with a direct link to the 360 tour.
+                </p>
+              </div>
+            </div>
+            {state.data ? (
+              <div className="pointer-events-auto flex flex-col items-end gap-4">
+                <div className="flex flex-col items-end gap-2 rounded-3xl border border-slate-700/60 bg-slate-900/55 px-6 py-4 text-xs uppercase tracking-[0.45em] text-slate-200">
+                  <span>Total units · {unitSummary.total}</span>
+                  <span>Available · {unitSummary.available}</span>
+                  <span>Reserved · {unitSummary.reserved}</span>
+                  <span>Sold · {unitSummary.sold}</span>
+                </div>
+                <BrowseModelsButton
+                  isOpen={showSearch}
+                  onClick={() => setShowSearch(!showSearch)}
+                />
+              </div>
+            ) : null}
+          </div>
+          {statusMessage ? (
+            <div className="pointer-events-none self-center rounded-full bg-slate-950/85 px-6 py-3 text-xs font-semibold uppercase tracking-[0.45em] text-slate-200 shadow-lg shadow-slate-950/60">
+              {statusMessage}
             </div>
           ) : null}
         </div>
-        {statusMessage ? (
-          <div className="pointer-events-none self-center rounded-full bg-slate-950/85 px-6 py-3 text-xs font-semibold uppercase tracking-[0.45em] text-slate-200 shadow-lg shadow-slate-950/60">
-            {statusMessage}
+        {/* Status Panel */}
+        {selectedUnit ? (
+          <div className="fixed inset-0 z-40 flex items-center justify-end transition-opacity">
+            <div className="relative mr-12 w-full max-w-sm rounded-3xl border border-slate-800 bg-slate-950/90 p-8 text-sm shadow-2xl">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedUnitId(null);
+                  setHoveredUnitId(null);
+                }}
+                className="absolute right-4 top-4 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-[0.7rem] uppercase tracking-[0.25em] text-slate-400 transition hover:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                aria-label="Close unit details"
+              >
+                Close
+              </button>
+              <p className="text-[0.65rem] uppercase tracking-[0.35em] text-emerald-300">
+                Unit Selected
+              </p>
+              <h2 className="mt-2 text-3xl font-semibold text-slate-100">
+                {selectedUnitModel}
+              </h2>
+              <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-400">
+                Unit ID · {selectedUnit.unitId}
+              </p>
+              <dl className="mt-6 space-y-3 text-base text-slate-200">
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-400">Area</dt>
+                  <dd>{selectedUnit.tooltip.areaM2} m^2</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-400">Bedrooms</dt>
+                  <dd>{selectedUnit.tooltip.bedrooms}</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-400">Bathrooms</dt>
+                  <dd>{selectedUnit.tooltip.bathrooms}</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-400">Status</dt>
+                  <dd>{selectedUnit.tooltip.availability}</dd>
+                </div>
+                {selectedUnit.tooltip.price ? (
+                  <div className="flex items-center justify-between">
+                    <dt className="text-slate-400">Price</dt>
+                    <dd>${selectedUnit.tooltip.price.toLocaleString()}</dd>
+                  </div>
+                ) : selectedUnitRecord?.price ? (
+                  <div className="flex items-center justify-between">
+                    <dt className="text-slate-400">Price</dt>
+                    <dd>${selectedUnitRecord.price.toLocaleString()}</dd>
+                  </div>
+                ) : null}
+              </dl>
+              {unitLoadError ? (
+                <p className="mt-4 text-xs text-red-400">{unitLoadError}</p>
+              ) : null}
+              <button
+                type="button"
+                className="mt-8 w-full rounded-full bg-emerald-400 px-6 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-slate-900 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500 disabled:hover:bg-slate-800"
+                onClick={() => handleUnitSelect(selectedUnit)}
+                disabled={!selectedUnitTourId}
+              >
+                {selectedUnitTourId
+                  ? "View 360 Tour"
+                  : "Tour asset unavailable"}
+              </button>
+            </div>
           </div>
         ) : null}
+
+        {/* Search Panel Overlay */}
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div
+              className="absolute inset-0 z-50 flex items-start justify-end bg-slate-950/40 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSearch(false)}
+            >
+              <motion.div
+                className="h-full w-full max-w-2xl overflow-y-auto bg-slate-900/95 p-8 shadow-2xl"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="mb-6 flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Browse Models</h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowSearch(false)}
+                    className="rounded-full p-2 transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    aria-label="Close search panel"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+
+                {modelsState.status === "loading" ||
+                modelsState.status === "idle" ? (
+                  <div className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                      <Loader2 className="mb-4 inline-block h-12 w-12 animate-spin text-emerald-500" />
+                      <p className="text-slate-400">Loading models...</p>
+                    </div>
+                  </div>
+                ) : modelsState.status === "error" ? (
+                  <div className="rounded-2xl border border-red-500/20 bg-red-900/10 p-8 text-center">
+                    <p className="text-red-400">{modelsState.error}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <SearchPanel
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      resultCount={filteredModels.length}
+                      showAvailability={false}
+                    />
+                    <ModelList
+                      models={filteredModels}
+                      onModelSelect={() => setShowSearch(false)}
+                      contextParams={{
+                        building: buildingId,
+                        floor: floorId,
+                        angle: searchParams.get("angle") ?? undefined,
+                      }}
+                      backLocation={(() => {
+                        const angle = searchParams.get("angle");
+                        const params = angle ? `?angle=${angle}` : "";
+                        return `/building/${buildingId}/floor/${floorId}${params}`;
+                      })()}
+                    />
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-      {/* Status Panel */}
-      {selectedUnit ? (
-        <div className="fixed inset-0 z-40 flex items-center justify-end transition-opacity">
-          <div className="relative mr-12 w-full max-w-sm rounded-3xl border border-slate-800 bg-slate-950/90 p-8 text-sm shadow-2xl">
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedUnitId(null);
-                setHoveredUnitId(null);
-              }}
-              className="absolute right-4 top-4 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-[0.7rem] uppercase tracking-[0.25em] text-slate-400 transition hover:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
-              aria-label="Close unit details"
-            >
-              Close
-            </button>
-            <p className="text-[0.65rem] uppercase tracking-[0.35em] text-emerald-300">
-              Unit Selected
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold text-slate-100">
-              {selectedUnitModel}
-            </h2>
-            <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-400">
-              Unit ID · {selectedUnit.unitId}
-            </p>
-            <dl className="mt-6 space-y-3 text-base text-slate-200">
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Area</dt>
-                <dd>{selectedUnit.tooltip.areaM2} m^2</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Bedrooms</dt>
-                <dd>{selectedUnit.tooltip.bedrooms}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Bathrooms</dt>
-                <dd>{selectedUnit.tooltip.bathrooms}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-400">Status</dt>
-                <dd>{selectedUnit.tooltip.availability}</dd>
-              </div>
-              {selectedUnit.tooltip.price ? (
-                <div className="flex items-center justify-between">
-                  <dt className="text-slate-400">Price</dt>
-                  <dd>${selectedUnit.tooltip.price.toLocaleString()}</dd>
-                </div>
-              ) : selectedUnitRecord?.price ? (
-                <div className="flex items-center justify-between">
-                  <dt className="text-slate-400">Price</dt>
-                  <dd>${selectedUnitRecord.price.toLocaleString()}</dd>
-                </div>
-              ) : null}
-            </dl>
-            {unitLoadError ? (
-              <p className="mt-4 text-xs text-red-400">{unitLoadError}</p>
-            ) : null}
-            <button
-              type="button"
-              className="mt-8 w-full rounded-full bg-emerald-400 px-6 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-slate-900 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500 disabled:hover:bg-slate-800"
-              onClick={() => handleUnitSelect(selectedUnit)}
-              disabled={!selectedUnitTourId}
-            >
-              {selectedUnitTourId ? "View 360 Tour" : "Tour asset unavailable"}
-            </button>
-          </div>
-        </div>
-      ) : null}
-    </div>
+    </motion.div>
   );
 };

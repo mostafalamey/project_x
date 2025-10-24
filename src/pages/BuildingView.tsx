@@ -151,7 +151,6 @@ export const BuildingView = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [zoomingFloorId, setZoomingFloorId] = useState<string | null>(null);
-  const transitionTimerRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Search/Models state
@@ -238,7 +237,10 @@ export const BuildingView = () => {
     let cancelled = false;
 
     const fetchBuilding = async () => {
-      setState((previous) => ({ ...previous, status: "loading", error: null }));
+      // Reset state completely when buildingId changes
+      setState({ status: "loading", data: null, error: null });
+      setImageLoaded(false);
+      setImageError(false);
 
       try {
         const data = await loadBuilding(buildingId);
@@ -339,14 +341,6 @@ export const BuildingView = () => {
       setHighlightedFloorId(null);
     }
   }, [highlightedFloorId, state]);
-
-  useEffect(() => {
-    return () => {
-      if (transitionTimerRef.current !== null) {
-        window.clearTimeout(transitionTimerRef.current);
-      }
-    };
-  }, []);
 
   const sortedFloors = useMemo(() => {
     if (!state.data) {
@@ -469,14 +463,8 @@ export const BuildingView = () => {
     const targetUrl = `/building/${buildingId}/floor/${floorId}?${params.toString()}`;
     startTransition(targetUrl, origin);
 
-    if (transitionTimerRef.current !== null) {
-      window.clearTimeout(transitionTimerRef.current);
-    }
-
-    // Small delay to ensure AnimatePresence properly processes the exit animation
-    setTimeout(() => {
-      navigate(targetUrl);
-    }, 50);
+    // Navigate immediately - AnimatePresence mode="wait" will handle the timing
+    navigate(targetUrl);
   };
 
   return (

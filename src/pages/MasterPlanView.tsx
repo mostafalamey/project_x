@@ -647,10 +647,8 @@ export const MasterPlanView = () => {
     const targetUrl = `/building/${buildingId}?angle=${normalizedIndex}`;
     startTransition(targetUrl, origin);
 
-    // Small delay to ensure AnimatePresence properly processes the exit animation
-    setTimeout(() => {
-      navigate(targetUrl);
-    }, 50);
+    // Navigate immediately - AnimatePresence mode="wait" will handle the timing
+    navigate(targetUrl);
   };
 
   const handlePanoramaActivate = (hotspot: PanoramaHotspot) => {
@@ -963,7 +961,7 @@ export const MasterPlanView = () => {
               <div className="flex items-center gap-sm">
                 <button
                   type="button"
-                  className="rounded-badge border border-light px-md py-sm transition-hover hover:border-primary-hover hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                  className="rounded-badge border border-border-light px-md py-sm transition-hover hover:border-primary-hover hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   onClick={() => handleCycle(-1)}
                   disabled={
                     state.status !== "success" ||
@@ -975,7 +973,7 @@ export const MasterPlanView = () => {
                   Prev
                 </button>
                 <div
-                  className="rounded-badge border border-light px-md py-sm"
+                  className="rounded-badge border border-border-light px-md py-sm"
                   role="status"
                   aria-live="polite"
                   aria-label={`Currently viewing angle ${normalizedIndex + 1}${
@@ -987,7 +985,7 @@ export const MasterPlanView = () => {
                 </div>
                 <button
                   type="button"
-                  className="rounded-badge border border-light px-md py-sm transition-hover hover:border-primary-hover hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                  className="rounded-badge border border-border-light px-md py-sm transition-hover hover:border-primary-hover hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   onClick={() => handleCycle(1)}
                   disabled={
                     state.status !== "success" ||

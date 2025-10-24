@@ -1,0 +1,67 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://aurora-complex.local/schemas/design-token.schema.json",
+    "title": "Design Token",
+    "description": "A named CSS custom property representing a reusable visual value",
+    "type": "object",
+    "required": [
+        "name",
+        "value",
+        "category",
+        "themeVariant"
+    ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "pattern": "^--[a-z][a-z0-9-]*$",
+            "description": "Token name in CSS custom property format (kebab-case, starts with --)"
+        },
+        "value": {
+            "type": "string",
+            "description": "CSS value (e.g., #3b82f6, 1rem, 300ms)",
+            "minLength": 1
+        },
+        "category": {
+            "type": "string",
+            "enum": [
+                "color",
+                "spacing",
+                "typography",
+                "shadow",
+                "border",
+                "transition"
+            ],
+            "description": "Token category"
+        },
+        "description": {
+            "type": "string",
+            "description": "Human-readable description for documentation"
+        },
+        "themeVariant": {
+            "type": "string",
+            "enum": [
+                "light",
+                "dark",
+                "base"
+            ],
+            "description": "Theme context - base applies to both themes"
+        }
+    },
+    "additionalProperties": false,
+    "examples": [
+        {
+            "name": "--color-primary",
+            "value": "#3b82f6",
+            "category": "color",
+            "description": "Primary brand color for buttons, links, and key UI elements",
+            "themeVariant": "light"
+        },
+        {
+            "name": "--spacing-md",
+            "value": "1rem",
+            "category": "spacing",
+            "description": "Medium spacing for consistent margins and padding",
+            "themeVariant": "base"
+        }
+    ]
+}

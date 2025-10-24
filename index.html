@@ -5,6 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/x-icon" href="/src/assets/favicon.ico" />
     <title>Real Estate Complex Viewer</title>
+
+    <!-- Theme initialization script - prevents flash of wrong theme (FOUC) -->
+    <script>
+      (function () {
+        try {
+          // Read stored theme preference
+          const stored = localStorage.getItem("aurora-theme-preference");
+          let mode =
+            stored === "light" || stored === "dark" || stored === "system"
+              ? stored
+              : "system";
+
+          // Resolve theme based on mode
+          let theme = mode;
+          if (mode === "system") {
+            theme = window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+          }
+
+          // Apply dark class immediately if needed
+          if (theme === "dark") {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (e) {
+          // Silently fail in case of localStorage issues
+          console.warn("Theme initialization failed:", e);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

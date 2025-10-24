@@ -903,18 +903,18 @@ export const FloorPlanView = () => {
           </div>
         </div>
 
-        <div className="pointer-events-none absolute inset-0 z-30 flex flex-col justify-between p-8 sm:p-12">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-            <div className="pointer-events-auto flex flex-col gap-4">
+        <div className="pointer-events-none absolute inset-0 z-30 flex flex-col justify-between p-lg sm:p-xl">
+          <div className="flex flex-col gap-lg sm:flex-row sm:items-start sm:justify-between">
+            <div className="pointer-events-auto flex flex-col gap-md">
               <BackNav label="Building" to={backHref} />
               <div>
-                <span className="text-xs font-semibold uppercase tracking-[0.45em] text-emerald-300">
+                <span className="text-xs font-semibold uppercase tracking-[0.45em] text-text-accent">
                   {state.data?.id ?? floorId ?? "Floor"}
                 </span>
-                <h1 className="mt-3 text-4xl font-bold sm:text-5xl">
+                <h1 className="mt-sm text-heading-1 font-bold">
                   {state.data ? `Floor ${state.data.number}` : "Floor Plan"}
                 </h1>
-                <p className="mt-3 max-w-xl text-sm text-slate-200">
+                <p className="mt-sm max-w-xl text-sm text-text-primary">
                   Explore the full floor layout. Hover units to preview key
                   stats, then select a unit to focus its outline and open the
                   quick details panel with a direct link to the 360 tour.
@@ -922,8 +922,8 @@ export const FloorPlanView = () => {
               </div>
             </div>
             {state.data ? (
-              <div className="pointer-events-auto flex flex-col items-end gap-4">
-                <div className="flex flex-col items-end gap-2 rounded-3xl border border-slate-700/60 bg-slate-900/55 px-6 py-4 text-xs uppercase tracking-[0.45em] text-slate-200">
+              <div className="pointer-events-auto flex flex-col items-end gap-md">
+                <div className="flex flex-col items-end gap-sm rounded-card border border-border-muted bg-surface-elevated/55 px-lg py-md text-xs uppercase tracking-[0.45em] text-text-secondary">
                   <span>Total units · {unitSummary.total}</span>
                   <span>Available · {unitSummary.available}</span>
                   <span>Reserved · {unitSummary.reserved}</span>
@@ -937,7 +937,7 @@ export const FloorPlanView = () => {
             ) : null}
           </div>
           {statusMessage ? (
-            <div className="pointer-events-none self-center rounded-full bg-slate-950/85 px-6 py-3 text-xs font-semibold uppercase tracking-[0.45em] text-slate-200 shadow-lg shadow-slate-950/60">
+            <div className="pointer-events-none self-center rounded-badge bg-surface-elevated/85 px-lg py-sm text-xs font-semibold uppercase tracking-[0.45em] text-text-secondary shadow-elevated">
               {statusMessage}
             </div>
           ) : null}
@@ -945,62 +945,62 @@ export const FloorPlanView = () => {
         {/* Status Panel */}
         {selectedUnit ? (
           <div className="fixed inset-0 z-40 flex items-center justify-end transition-opacity">
-            <div className="relative mr-12 w-full max-w-sm rounded-3xl border border-slate-800 bg-slate-950/90 p-8 text-sm shadow-2xl">
+            <div className="relative mr-xl w-full max-w-sm rounded-card border border-border bg-surface-elevated/90 p-lg text-sm shadow-modal">
               <button
                 type="button"
                 onClick={() => {
                   setSelectedUnitId(null);
                   setHoveredUnitId(null);
                 }}
-                className="absolute right-4 top-4 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-[0.7rem] uppercase tracking-[0.25em] text-slate-400 transition hover:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                className="absolute right-md top-md rounded-badge border border-border bg-surface-base/60 px-sm py-xs text-caption uppercase tracking-[0.25em] text-text-tertiary transition-hover hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                 aria-label="Close unit details"
               >
                 Close
               </button>
-              <p className="text-[0.65rem] uppercase tracking-[0.35em] text-emerald-300">
+              <p className="text-caption uppercase tracking-[0.35em] text-primary">
                 Unit Selected
               </p>
-              <h2 className="mt-2 text-3xl font-semibold text-slate-100">
+              <h2 className="mt-sm text-heading-3 font-semibold text-text-primary">
                 {selectedUnitModel}
               </h2>
-              <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-400">
+              <p className="mt-xs text-xs uppercase tracking-[0.3em] text-text-tertiary">
                 Unit ID · {selectedUnit.unitId}
               </p>
-              <dl className="mt-6 space-y-3 text-base text-slate-200">
+              <dl className="mt-lg space-y-sm text-base text-text-secondary">
                 <div className="flex items-center justify-between">
-                  <dt className="text-slate-400">Area</dt>
+                  <dt className="text-text-tertiary">Area</dt>
                   <dd>{selectedUnit.tooltip.areaM2} m^2</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-slate-400">Bedrooms</dt>
+                  <dt className="text-text-tertiary">Bedrooms</dt>
                   <dd>{selectedUnit.tooltip.bedrooms}</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-slate-400">Bathrooms</dt>
+                  <dt className="text-text-tertiary">Bathrooms</dt>
                   <dd>{selectedUnit.tooltip.bathrooms}</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-slate-400">Status</dt>
+                  <dt className="text-text-tertiary">Status</dt>
                   <dd>{selectedUnit.tooltip.availability}</dd>
                 </div>
                 {selectedUnit.tooltip.price ? (
                   <div className="flex items-center justify-between">
-                    <dt className="text-slate-400">Price</dt>
+                    <dt className="text-text-tertiary">Price</dt>
                     <dd>${selectedUnit.tooltip.price.toLocaleString()}</dd>
                   </div>
                 ) : selectedUnitRecord?.price ? (
                   <div className="flex items-center justify-between">
-                    <dt className="text-slate-400">Price</dt>
+                    <dt className="text-text-tertiary">Price</dt>
                     <dd>${selectedUnitRecord.price.toLocaleString()}</dd>
                   </div>
                 ) : null}
               </dl>
               {unitLoadError ? (
-                <p className="mt-4 text-xs text-red-400">{unitLoadError}</p>
+                <p className="mt-md text-xs text-error">{unitLoadError}</p>
               ) : null}
               <button
                 type="button"
-                className="mt-8 w-full rounded-full bg-emerald-400 px-6 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-slate-900 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500 disabled:hover:bg-slate-800"
+                className="mt-lg w-full rounded-badge bg-primary px-lg py-sm text-sm font-semibold uppercase tracking-[0.3em] text-text-inverse transition-hover hover:bg-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring disabled:cursor-not-allowed disabled:bg-surface-base disabled:text-text-disabled disabled:hover:bg-surface-base"
                 onClick={() => handleUnitSelect(selectedUnit)}
                 disabled={!selectedUnitTourId}
               >
@@ -1023,19 +1023,19 @@ export const FloorPlanView = () => {
               onClick={() => setShowSearch(false)}
             >
               <motion.div
-                className="h-full w-full max-w-2xl overflow-y-auto bg-slate-900/95 p-8 shadow-2xl"
+                className="h-full w-full max-w-2xl overflow-y-auto bg-surface-elevated/95 p-lg shadow-modal"
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 300 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="text-2xl font-bold">Browse Models</h2>
+                <div className="mb-lg flex items-center justify-between">
+                  <h2 className="text-heading-3 font-bold">Browse Models</h2>
                   <button
                     type="button"
                     onClick={() => setShowSearch(false)}
-                    className="rounded-full p-2 transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    className="rounded-button p-sm transition-hover hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                     aria-label="Close search panel"
                   >
                     <X className="h-6 w-6" />
@@ -1044,18 +1044,18 @@ export const FloorPlanView = () => {
 
                 {modelsState.status === "loading" ||
                 modelsState.status === "idle" ? (
-                  <div className="flex items-center justify-center py-20">
+                  <div className="flex items-center justify-center py-2xl">
                     <div className="text-center">
-                      <Loader2 className="mb-4 inline-block h-12 w-12 animate-spin text-emerald-500" />
-                      <p className="text-slate-400">Loading models...</p>
+                      <Loader2 className="mb-md inline-block h-12 w-12 animate-spin text-primary" />
+                      <p className="text-text-secondary">Loading models...</p>
                     </div>
                   </div>
                 ) : modelsState.status === "error" ? (
-                  <div className="rounded-2xl border border-red-500/20 bg-red-900/10 p-8 text-center">
-                    <p className="text-red-400">{modelsState.error}</p>
+                  <div className="rounded-card border border-error/20 bg-error/10 p-lg text-center">
+                    <p className="text-error">{modelsState.error}</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-lg">
                     <SearchPanel
                       filters={filters}
                       onFiltersChange={setFilters}

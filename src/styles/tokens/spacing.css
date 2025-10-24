@@ -1,0 +1,75 @@
+/**
+ * Design Tokens: Spacing
+ * 
+ * Consistent spacing scale based on 8-point grid system.
+ * Base unit: 4px (0.25rem)
+ * 
+ * Usage:
+ * - Use for margins, padding, gaps, and positioning
+ * - Maintain vertical rhythm and visual hierarchy
+ * - Prefer named tokens over arbitrary values
+ * 
+ * Tailwind classes: gap-xs, p-sm, m-md, space-lg, etc.
+ */
+
+:root {
+  /* ============================================
+     SPACING SCALE - 8-point grid system
+     ============================================ */
+
+  /* Extra small - 4px */
+  --spacing-xs: 0.25rem;
+
+  /* Small - 8px */
+  --spacing-sm: 0.5rem;
+
+  /* Medium - 12px */
+  --spacing-md: 0.75rem;
+
+  /* Base - 16px (1rem) */
+  --spacing-base: 1rem;
+
+  /* Large - 24px */
+  --spacing-lg: 1.5rem;
+
+  /* Extra large - 32px */
+  --spacing-xl: 2rem;
+
+  /* 2x large - 48px */
+  --spacing-2xl: 3rem;
+
+  /* 3x large - 64px */
+  --spacing-3xl: 4rem;
+
+  /* 4x large - 96px */
+  --spacing-4xl: 6rem;
+
+  /* 5x large - 128px */
+  --spacing-5xl: 8rem;
+
+  /* ============================================
+     COMPONENT-SPECIFIC SPACING
+     ============================================ */
+
+  /* Container padding */
+  --spacing-container-xs: 1rem; /* 16px - mobile */
+  --spacing-container-sm: 1.5rem; /* 24px - tablet */
+  --spacing-container-md: 2rem; /* 32px - desktop */
+  --spacing-container-lg: 3rem; /* 48px - large desktop */
+
+  /* Section spacing */
+  --spacing-section-sm: 2rem; /* 32px */
+  --spacing-section-md: 4rem; /* 64px */
+  --spacing-section-lg: 6rem; /* 96px */
+
+  /* Card/Panel padding */
+  --spacing-card-sm: 1rem; /* 16px */
+  --spacing-card-md: 1.5rem; /* 24px */
+  --spacing-card-lg: 2rem; /* 32px */
+
+  /* Stack/List gaps */
+  --spacing-stack-xs: 0.5rem; /* 8px */
+  --spacing-stack-sm: 1rem; /* 16px */
+  --spacing-stack-md: 1.5rem; /* 24px */
+  --spacing-stack-lg: 2rem; /* 32px */
+}

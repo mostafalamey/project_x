@@ -287,7 +287,7 @@ export const TourViewer = () => {
 
   return (
     <motion.div
-      className="relative h-screen w-screen overflow-hidden bg-slate-950"
+      className="relative h-screen w-screen overflow-hidden bg-bg-base"
       initial={{ opacity: 1, scale: 1 }} // No enter animation - appear instantly
       animate={{ opacity: 1, scale: 1 }}
       exit={exitVariant}
@@ -315,10 +315,10 @@ export const TourViewer = () => {
             />
           </motion.div>
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-slate-950">
-            <div className="flex flex-col items-center gap-4">
-              <div className="h-16 w-16 animate-spin rounded-full border-4 border-slate-700 border-t-emerald-400"></div>
-              <span className="text-sm uppercase tracking-[0.35em] text-slate-400">
+          <div className="flex h-full w-full items-center justify-center bg-bg-base">
+            <div className="flex flex-col items-center gap-md">
+              <div className="h-16 w-16 animate-spin rounded-full border-4 border-border border-t-primary"></div>
+              <span className="text-sm uppercase tracking-[0.35em] text-text-tertiary">
                 Initializing tour...
               </span>
             </div>
@@ -333,11 +333,11 @@ export const TourViewer = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-40 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm"
+            className="absolute inset-0 z-40 flex items-center justify-center bg-bg-overlay backdrop-blur-sm"
           >
-            <div className="flex flex-col items-center gap-4">
-              <div className="h-16 w-16 animate-spin rounded-full border-4 border-slate-700 border-t-emerald-400"></div>
-              <span className="text-sm uppercase tracking-[0.35em] text-slate-400">
+            <div className="flex flex-col items-center gap-md">
+              <div className="h-16 w-16 animate-spin rounded-full border-4 border-border border-t-primary"></div>
+              <span className="text-sm uppercase tracking-[0.35em] text-text-tertiary">
                 Loading panorama...
               </span>
             </div>
@@ -347,11 +347,11 @@ export const TourViewer = () => {
 
       {/* Error State */}
       {state.status === "error" && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950">
-          <div className="flex flex-col items-center gap-4 px-6 text-center">
-            <div className="rounded-full bg-red-500/10 p-4">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-bg-base">
+          <div className="flex flex-col items-center gap-md px-lg text-center">
+            <div className="rounded-badge bg-error/10 p-md">
               <svg
-                className="h-12 w-12 text-red-400"
+                className="h-12 w-12 text-error"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -364,13 +364,13 @@ export const TourViewer = () => {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-slate-100">
+            <h2 className="text-xl font-bold text-text-primary">
               Unable to Load Tour
             </h2>
-            <p className="text-sm text-slate-400">{state.error}</p>
+            <p className="text-sm text-text-secondary">{state.error}</p>
             <button
               onClick={handleBack}
-              className="mt-4 rounded-lg bg-emerald-500 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
+              className="mt-md rounded-button bg-primary px-lg py-sm text-sm font-semibold text-text-inverse transition-hover hover:bg-primary-hover"
             >
               Go Back
             </button>
@@ -386,15 +386,15 @@ export const TourViewer = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="absolute left-0 right-0 top-0 z-30 px-6 py-6"
+            className="absolute left-0 right-0 top-0 z-30 px-lg py-lg"
           >
             <div className="flex items-center justify-between">
               <button
                 onClick={handleBack}
-                className="group flex items-center gap-3 rounded-full bg-slate-950/80 px-5 py-3 backdrop-blur-md transition hover:bg-slate-900/90"
+                className="group flex items-center gap-sm rounded-badge bg-surface-elevated/80 px-md py-sm backdrop-blur-md transition-hover hover:bg-surface-elevated/90"
               >
                 <svg
-                  className="h-5 w-5 text-slate-300 transition group-hover:text-emerald-400"
+                  className="h-5 w-5 text-text-secondary transition group-hover:text-primary"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -406,13 +406,13 @@ export const TourViewer = () => {
                     d="M10 19l-7-7m0 0l7-7m-7 7h18"
                   />
                 </svg>
-                <span className="text-sm font-semibold text-slate-100">
+                <span className="text-sm font-semibold text-text-primary">
                   {backLabel}
                 </span>
               </button>
 
-              <div className="rounded-full bg-slate-950/80 px-6 py-3 backdrop-blur-md">
-                <span className="text-sm font-semibold text-slate-100">
+              <div className="rounded-badge bg-surface-elevated/80 px-lg py-sm backdrop-blur-md">
+                <span className="text-sm font-semibold text-text-primary">
                   {unitName}
                 </span>
               </div>
@@ -426,16 +426,16 @@ export const TourViewer = () => {
             transition={{ delay: 0.4 }}
             className="absolute bottom-20 left-6 z-30"
           >
-            <div className="rounded-2xl bg-slate-950/80 px-5 py-4 backdrop-blur-md">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-400">
+            <div className="rounded-card bg-surface-elevated/80 px-md py-md backdrop-blur-md">
+              <div className="flex flex-col gap-xs">
+                <span className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
                   Scene
                 </span>
-                <span className="text-lg font-bold text-slate-100 capitalize">
+                <span className="text-lg font-bold text-text-primary capitalize">
                   {currentScene.id.replace(/-/g, " ")}
                 </span>
                 {currentScene.links && currentScene.links.length > 0 && (
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-text-tertiary">
                     {currentScene.links.length} hotspot
                     {currentScene.links.length !== 1 ? "s" : ""} available
                   </span>
@@ -449,15 +449,15 @@ export const TourViewer = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="absolute bottom-20 right-6 z-30 flex flex-col items-end gap-3"
+            className="absolute bottom-20 right-6 z-30 flex flex-col items-end gap-sm"
           >
             {/* Scene List Button */}
             <button
               onClick={() => setShowSceneList(!showSceneList)}
-              className="group flex items-center gap-3 rounded-full bg-slate-950/80 px-5 py-3 backdrop-blur-md transition hover:bg-slate-900/90"
+              className="group flex items-center gap-sm rounded-badge bg-surface-elevated/80 px-md py-sm backdrop-blur-md transition-hover hover:bg-surface-elevated/90"
             >
               <svg
-                className="h-5 w-5 text-slate-300 transition group-hover:text-emerald-400"
+                className="h-5 w-5 text-text-secondary transition group-hover:text-primary"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -469,7 +469,7 @@ export const TourViewer = () => {
                   d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
-              <span className="text-sm font-semibold text-slate-100">
+              <span className="text-sm font-semibold text-text-primary">
                 Scenes ({state.data?.scenes.length ?? 0})
               </span>
             </button>
@@ -483,16 +483,16 @@ export const TourViewer = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 300 }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="absolute bottom-32 right-6 z-40 w-80 max-h-[60vh] overflow-hidden rounded-2xl bg-slate-950/95 backdrop-blur-md shadow-2xl"
+                className="absolute bottom-32 right-6 z-40 w-80 max-h-[60vh] overflow-hidden rounded-card bg-surface-elevated/95 backdrop-blur-md shadow-modal"
               >
-                <div className="border-b border-slate-800 px-5 py-4">
+                <div className="border-b border-border px-md py-md">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.35em] text-slate-300">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.35em] text-text-secondary">
                       Tour Scenes
                     </h3>
                     <button
                       onClick={() => setShowSceneList(false)}
-                      className="text-slate-400 transition hover:text-slate-100"
+                      className="text-text-tertiary transition-hover hover:text-text-primary"
                       aria-label="Close scene list"
                     >
                       <svg
@@ -511,8 +511,8 @@ export const TourViewer = () => {
                     </button>
                   </div>
                 </div>
-                <div className="overflow-y-auto max-h-[calc(60vh-4rem)] p-3">
-                  <div className="flex flex-col gap-2">
+                <div className="overflow-y-auto max-h-[calc(60vh-4rem)] p-sm">
+                  <div className="flex flex-col gap-sm">
                     {state.data?.scenes.map((scene) => (
                       <button
                         key={scene.id}
@@ -521,16 +521,16 @@ export const TourViewer = () => {
                           handleSceneCardSelect(scene);
                           setShowSceneList(false);
                         }}
-                        className={`flex flex-col gap-2 rounded-xl border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 ${
+                        className={`flex flex-col gap-sm rounded-card border px-md py-sm text-left transition-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                           scene.id === currentSceneId
-                            ? "border-emerald-400/70 bg-emerald-500/20 text-emerald-200"
-                            : "border-slate-700/60 bg-slate-900/60 hover:border-emerald-400/50 hover:bg-emerald-500/10"
+                            ? "border-primary/70 bg-primary/20"
+                            : "border-border-muted bg-surface-base/60 hover:border-primary/50 hover:bg-primary/10"
                         }`}
                       >
-                        <span className="text-sm font-semibold capitalize text-slate-100">
+                        <span className="text-sm font-semibold capitalize text-text-primary">
                           {scene.id.replace(/-/g, " ")}
                         </span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-text-tertiary">
                           {scene.links?.length
                             ? `${scene.links.length} hotspot${
                                 scene.links.length !== 1 ? "s" : ""

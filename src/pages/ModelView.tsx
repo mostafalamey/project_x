@@ -352,39 +352,39 @@ export const ModelView = () => {
         <div className="pointer-events-none absolute bottom-0 inset-x-0 h-1/4 bg-gradient-to-t from-slate-950/70 to-transparent" />
 
         {/* UI Layer - overlaid on top */}
-        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-10">
+        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-lg">
           {/* Top Section - Back button and Title */}
-          <div className="flex w-full items-start justify-between gap-4">
-            <div className="pointer-events-auto flex flex-col gap-3">
+          <div className="flex w-full items-start justify-between gap-md">
+            <div className="pointer-events-auto flex flex-col gap-sm">
               <BackNav label={backLabel} to={backHref} />
               <div className="max-w-xl">
-                <span className="text-xs font-semibold uppercase tracking-[0.5em] text-emerald-300">
+                <span className="text-xs font-semibold uppercase tracking-[0.5em] text-primary">
                   Model {model?.id}
                 </span>
-                <h1 className="mt-3 text-4xl font-bold sm:text-5xl">
+                <h1 className="mt-sm text-heading-1 font-bold">
                   {model?.title ?? `Model ${model?.id}`}
                 </h1>
-                <div className="mt-4 flex flex-wrap items-center gap-4 text-slate-200">
-                  <div className="flex items-center gap-2">
-                    <BedDouble className="h-5 w-5 text-emerald-400" />
+                <div className="mt-md flex flex-wrap items-center gap-md text-text-primary">
+                  <div className="flex items-center gap-sm">
+                    <BedDouble className="h-5 w-5 text-primary" />
                     <span className="text-sm">
                       {model?.bedrooms}{" "}
                       {model?.bedrooms === 1 ? "Bedroom" : "Bedrooms"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Bath className="h-5 w-5 text-emerald-400" />
+                  <div className="flex items-center gap-sm">
+                    <Bath className="h-5 w-5 text-primary" />
                     <span className="text-sm">
                       {model?.bathrooms}{" "}
                       {model?.bathrooms === 1 ? "Bathroom" : "Bathrooms"}
                     </span>
                   </div>
-                  <div className="rounded-full border border-slate-500/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.45em]">
+                  <div className="rounded-badge border border-border px-md py-sm text-xs font-semibold uppercase tracking-[0.45em]">
                     {model?.areaM2} m²
                   </div>
                 </div>
                 {model?.description && (
-                  <p className="mt-3 text-sm text-slate-200 leading-relaxed">
+                  <p className="mt-sm text-sm text-text-primary leading-relaxed">
                     {model.description}
                   </p>
                 )}
@@ -422,7 +422,7 @@ export const ModelView = () => {
                         navigate(`/tour/${tourId}`);
                       }
                     }}
-                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                    className="mt-md inline-flex items-center gap-sm rounded-badge bg-primary px-md py-sm text-sm font-semibold text-text-inverse transition-hover hover:bg-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   >
                     <Video className="h-4 w-4" />
                     <span>Explore 360° Virtual Tour</span>
@@ -433,11 +433,11 @@ export const ModelView = () => {
 
             {/* Frame Counter - top right */}
             {rotation360 && imageLoaded && !imageError && (
-              <div className="pointer-events-auto flex flex-col items-end gap-3 text-xs font-semibold uppercase tracking-[0.45em] text-slate-200">
-                <div className="rounded-full border border-slate-500/70 px-4 py-2">
+              <div className="pointer-events-auto flex flex-col items-end gap-sm text-xs font-semibold uppercase tracking-[0.45em] text-text-secondary">
+                <div className="rounded-badge border border-border px-md py-sm">
                   Frame {currentFrame + 1} / {rotation360.frameCount}
                 </div>
-                <span className="text-[10px] uppercase tracking-[0.45em] text-slate-400">
+                <span className="text-caption uppercase tracking-[0.45em] text-text-tertiary">
                   Drag to rotate 360°
                 </span>
               </div>
@@ -451,7 +451,7 @@ export const ModelView = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 0.6, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
-                className="pointer-events-none flex items-center gap-2 rounded-full bg-slate-900/80 px-4 py-2 text-slate-300 backdrop-blur-sm"
+                className="pointer-events-none flex items-center gap-sm rounded-badge bg-surface-elevated/80 px-md py-sm text-text-secondary backdrop-blur-sm"
               >
                 <ChevronLeft className="h-5 w-5" />
                 <span className="text-sm">Swipe</span>
@@ -460,7 +460,7 @@ export const ModelView = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 0.6, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
-                className="pointer-events-none flex items-center gap-2 rounded-full bg-slate-900/80 px-4 py-2 text-slate-300 backdrop-blur-sm"
+                className="pointer-events-none flex items-center gap-sm rounded-badge bg-surface-elevated/80 px-md py-sm text-text-secondary backdrop-blur-sm"
               >
                 <span className="text-sm">to rotate</span>
                 <ChevronRight className="h-5 w-5" />
@@ -475,7 +475,7 @@ export const ModelView = () => {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
-                className="rounded-full bg-slate-950/80 px-6 py-3 text-center text-xs font-semibold uppercase tracking-[0.45em] text-slate-200 shadow-lg shadow-slate-950/60 backdrop-blur-sm"
+                className="rounded-badge bg-surface-elevated/80 px-lg py-sm text-center text-xs font-semibold uppercase tracking-[0.45em] text-text-secondary shadow-elevated backdrop-blur-sm"
                 role="status"
                 aria-live="polite"
               >

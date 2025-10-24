@@ -22,9 +22,11 @@ const formatPrice = (price: number | undefined) => {
 };
 
 const availabilityStyles = {
-  Available: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  Reserved: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-  Sold: "bg-slate-600/20 text-slate-400 border-slate-600/30",
+  Available:
+    "bg-status-available-bg text-status-available-text border-status-available-border",
+  Reserved:
+    "bg-status-reserved-bg text-status-reserved-text border-status-reserved-border",
+  Sold: "bg-status-sold-bg text-status-sold-text border-status-sold-border",
 };
 
 export const UnitList = ({ units, onUnitSelect }: UnitListProps) => {
@@ -50,8 +52,8 @@ export const UnitList = ({ units, onUnitSelect }: UnitListProps) => {
 
   if (units.length === 0) {
     return (
-      <div className="rounded-2xl bg-slate-900/60 p-8 text-center">
-        <p className="text-slate-400">
+      <div className="rounded-card bg-surface-base p-lg text-center">
+        <p className="text-text-secondary">
           No units match your search criteria. Try adjusting your filters.
         </p>
       </div>
@@ -59,7 +61,7 @@ export const UnitList = ({ units, onUnitSelect }: UnitListProps) => {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
       {units.map((unit) => (
         <div
           key={unit.id}
@@ -67,15 +69,15 @@ export const UnitList = ({ units, onUnitSelect }: UnitListProps) => {
           tabIndex={0}
           onClick={() => handleUnitClick(unit)}
           onKeyDown={(e) => handleKeyDown(e, unit)}
-          className="group cursor-pointer rounded-xl border border-slate-700/50 bg-slate-900/60 p-5 transition hover:border-emerald-500/50 hover:bg-slate-900/80 hover:shadow-lg focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          className="group cursor-pointer rounded-card border border-border-muted bg-surface-base p-md transition-hover hover:border-border-hover hover:bg-surface-hover hover:shadow-card-hover focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-focus-ring"
         >
           {/* Unit ID */}
-          <div className="mb-3 flex items-start justify-between">
-            <h3 className="text-sm font-mono font-semibold text-slate-100 group-hover:text-emerald-400 transition">
+          <div className="mb-sm flex items-start justify-between">
+            <h3 className="font-mono text-sm font-semibold text-text-primary transition-color group-hover:text-text-accent">
               {unit.id}
             </h3>
             <span
-              className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
+              className={`rounded-badge border px-sm py-xs text-xs font-medium ${
                 availabilityStyles[unit.availability]
               }`}
             >
@@ -84,35 +86,35 @@ export const UnitList = ({ units, onUnitSelect }: UnitListProps) => {
           </div>
 
           {/* Unit Details */}
-          <div className="mb-3 space-y-1.5 text-sm text-slate-300">
+          <div className="mb-sm space-y-xs text-sm text-text-primary">
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Area:</span>
+              <span className="text-text-secondary">Area:</span>
               <span className="font-medium">{unit.areaM2} m²</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Bedrooms:</span>
+              <span className="text-text-secondary">Bedrooms:</span>
               <span className="font-medium">{unit.bedrooms}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Bathrooms:</span>
+              <span className="text-text-secondary">Bathrooms:</span>
               <span className="font-medium">{unit.bathrooms}</span>
             </div>
           </div>
 
           {/* Price */}
-          <div className="border-t border-slate-700/50 pt-3">
+          <div className="border-t border-border-muted pt-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-wide text-slate-400">
+              <span className="text-xs uppercase tracking-wide text-text-secondary">
                 Price
               </span>
-              <span className="text-sm font-semibold text-emerald-400">
+              <span className="text-sm font-semibold text-text-accent">
                 {formatPrice(unit.price)}
               </span>
             </div>
           </div>
 
           {/* Location */}
-          <div className="mt-2 text-xs text-slate-500">
+          <div className="mt-2 text-xs text-text-tertiary">
             Building {unit.buildingId.toUpperCase()} • Floor{" "}
             {unit.floorId.toUpperCase()}
           </div>

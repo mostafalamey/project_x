@@ -1,0 +1,100 @@
+/**
+ * Design Tokens: Borders
+ * 
+ * Border radius and border width tokens.
+ * Consistent corner rounding and line weights.
+ * 
+ * Usage:
+ * - Border radius: rounded-sm, rounded-md, rounded-lg, rounded-full
+ * - Border width: border, border-2, border-4
+ * 
+ * Tailwind classes: rounded-{size}, border-{width}
+ */
+
+:root {
+  /* ============================================
+     BORDER RADIUS - Corner rounding
+     ============================================ */
+
+  /* None - Square corners */
+  --radius-none: 0;
+
+  /* Small - Subtle rounding (4px) */
+  --radius-sm: 0.25rem;
+
+  /* Medium - Standard rounding (6px) */
+  --radius-md: 0.375rem;
+
+  /* Large - Prominent rounding (8px) */
+  --radius-lg: 0.5rem;
+
+  /* Extra large - Heavy rounding (12px) */
+  --radius-xl: 0.75rem;
+
+  /* 2x large - Very rounded (16px) */
+  --radius-2xl: 1rem;
+
+  /* 3x large - Maximum rounding (24px) */
+  --radius-3xl: 1.5rem;
+
+  /* Full - Circular/Pill shape */
+  --radius-full: 9999px;
+
+  /* ============================================
+     BORDER WIDTHS
+     ============================================ */
+
+  /* Default border width */
+  --border-width: 1px;
+
+  /* Thicker border */
+  --border-width-2: 2px;
+
+  /* Heavy border */
+  --border-width-4: 4px;
+
+  /* Very heavy border */
+  --border-width-8: 8px;
+
+  /* ============================================
+     SEMANTIC BORDER RADIUS - Component-specific
+     ============================================ */
+
+  /* Buttons */
+  --radius-button: var(--radius-md);
+  --radius-button-sm: var(--radius-sm);
+  --radius-button-lg: var(--radius-lg);
+
+  /* Input fields */
+  --radius-input: var(--radius-md);
+
+  /* Cards and panels */
+  --radius-card: var(--radius-xl);
+  --radius-panel: var(--radius-2xl);
+
+  /* Badges and tags */
+  --radius-badge: var(--radius-full);
+  --radius-tag: var(--radius-md);
+
+  /* Modals and dialogs */
+  --radius-modal: var(--radius-2xl);
+
+  /* Tooltips and popovers */
+  --radius-tooltip: var(--radius-lg);
+
+  /* Avatar/Profile images */
+  --radius-avatar: var(--radius-full);
+
+  /* ============================================
+     SEMANTIC BORDER WIDTHS
+     ============================================ */
+
+  /* Dividers */
+  --border-divider: var(--border-width);
+
+  /* Focus rings */
+  --border-focus: var(--border-width-2);
+
+  /* Emphasis borders */
+  --border-emphasis: var(--border-width-2);
+}

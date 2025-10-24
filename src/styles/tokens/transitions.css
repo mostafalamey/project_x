@@ -1,0 +1,104 @@
+/**
+ * Design Tokens: Transitions
+ * 
+ * Animation durations, timing functions, and easing curves.
+ * Consistent motion design across the application.
+ * 
+ * Usage:
+ * - Duration: transition-fast, transition-base, transition-slow
+ * - Easing: ease-in, ease-out, ease-in-out
+ * 
+ * Tailwind classes: duration-{speed}, ease-{curve}
+ */
+
+:root {
+  /* ============================================
+     DURATION - Animation/transition speeds
+     ============================================ */
+
+  /* Instant - No animation (0ms) */
+  --duration-instant: 0ms;
+
+  /* Fast - Quick interactions (150ms) */
+  --duration-fast: 150ms;
+
+  /* Base - Standard transitions (300ms) */
+  --duration-base: 300ms;
+
+  /* Slow - Deliberate animations (500ms) */
+  --duration-slow: 500ms;
+
+  /* Slower - Emphasis animations (700ms) */
+  --duration-slower: 700ms;
+
+  /* Slowest - Complex animations (1000ms) */
+  --duration-slowest: 1000ms;
+
+  /* ============================================
+     EASING - Timing functions
+     ============================================ */
+
+  /* Linear - Constant speed */
+  --ease-linear: linear;
+
+  /* Ease - Natural ease (default) */
+  --ease: ease;
+
+  /* Ease in - Start slow, end fast */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Ease out - Start fast, end slow */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* Ease in-out - Slow start and end */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Custom easing curves */
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-smooth: cubic-bezier(0.45, 0, 0.55, 1);
+  --ease-emphasized: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ============================================
+     SEMANTIC TRANSITIONS - Component-specific
+     ============================================ */
+
+  /* Hover effects */
+  --transition-hover: all var(--duration-fast) var(--ease-out);
+
+  /* Focus effects */
+  --transition-focus: all var(--duration-fast) var(--ease-out);
+
+  /* Color changes */
+  --transition-color: color var(--duration-base) var(--ease-in-out),
+    background-color var(--duration-base) var(--ease-in-out),
+    border-color var(--duration-base) var(--ease-in-out);
+
+  /* Transform effects */
+  --transition-transform: transform var(--duration-base) var(--ease-out);
+
+  /* Opacity fades */
+  --transition-opacity: opacity var(--duration-base) var(--ease-in-out);
+
+  /* Modal/Dialog entrance */
+  --transition-modal: opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+
+  /* Dropdown/Menu entrance */
+  --transition-dropdown: opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+
+  /* Tooltip entrance */
+  --transition-tooltip: opacity var(--duration-fast) var(--ease-out);
+
+  /* Page transitions */
+  --transition-page: opacity var(--duration-slow) var(--ease-in-out);
+
+  /* ============================================
+     DELAYS - Staggered animations
+     ============================================ */
+
+  --delay-none: 0ms;
+  --delay-fast: 75ms;
+  --delay-base: 150ms;
+  --delay-slow: 300ms;
+}

@@ -1,11 +1,11 @@
 import { type ReactNode } from "react";
 
 export interface TooltipProps {
-  /** The title/heading text in emerald-300 */
+  /** The title/heading text */
   title?: string;
-  /** The main content text in slate-100 */
+  /** The main content text */
   content?: string;
-  /** The secondary/status text in slate-400 */
+  /** The secondary/status text */
   footer?: string;
   /** Custom children for more complex tooltip content */
   children?: ReactNode;
@@ -41,22 +41,24 @@ export const Tooltip = ({
 }: TooltipProps) => {
   return (
     <div
-      className={`rounded-xl bg-slate-900/85 px-4 py-3 text-left shadow-xl shadow-slate-950/50 ${className}`}
+      className={`rounded-tooltip bg-surface-elevated px-md py-sm text-left shadow-tooltip ${className}`}
     >
       {children ? (
         children
       ) : (
         <>
           {title && (
-            <p className="text-[0.65rem] uppercase tracking-[0.35em] text-emerald-300">
+            <p className="text-[0.65rem] uppercase tracking-[0.35em] text-text-accent">
               {title}
             </p>
           )}
           {content && (
-            <p className="mt-1 text-sm font-medium text-slate-100">{content}</p>
+            <p className="mt-xs text-sm font-medium text-text-primary">
+              {content}
+            </p>
           )}
           {footer && (
-            <p className="mt-1 text-[0.75rem] text-slate-400">{footer}</p>
+            <p className="mt-xs text-[0.75rem] text-text-secondary">{footer}</p>
           )}
         </>
       )}

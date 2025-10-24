@@ -1,0 +1,60 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://aurora-complex.local/schemas/theme-preference.schema.json",
+    "title": "Theme Preference",
+    "description": "User's theme preference stored in browser localStorage",
+    "type": "object",
+    "required": [
+        "theme",
+        "source"
+    ],
+    "properties": {
+        "theme": {
+            "type": "string",
+            "enum": [
+                "light",
+                "dark",
+                "system"
+            ],
+            "description": "The selected theme mode"
+        },
+        "source": {
+            "type": "string",
+            "enum": [
+                "localStorage",
+                "osPreference",
+                "default"
+            ],
+            "description": "How the theme preference was determined"
+        },
+        "timestamp": {
+            "type": "number",
+            "description": "Unix timestamp when preference was last changed (required if source is localStorage)",
+            "minimum": 0
+        }
+    },
+    "if": {
+        "properties": {
+            "source": {
+                "const": "localStorage"
+            }
+        }
+    },
+    "then": {
+        "required": [
+            "timestamp"
+        ]
+    },
+    "additionalProperties": false,
+    "examples": [
+        {
+            "theme": "dark",
+            "source": "localStorage",
+            "timestamp": 1729728000000
+        },
+        {
+            "theme": "light",
+            "source": "osPreference"
+        }
+    ]
+}

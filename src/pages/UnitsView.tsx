@@ -147,9 +147,9 @@ export const UnitsView = () => {
 
           {/* Loading State */}
           {isLoading && (
-            <div className="flex items-center justify-center py-20">
+            <div className="flex items-center justify-center py-2xl">
               <div className="text-center">
-                <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-700 border-t-emerald-500" />
+                <div className="mb-md inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-700 border-t-emerald-500" />
                 <p className="text-slate-400">Loading units...</p>
               </div>
             </div>
@@ -157,14 +157,14 @@ export const UnitsView = () => {
 
           {/* Error State */}
           {hasError && (
-            <div className="rounded-2xl border border-red-500/20 bg-red-900/10 p-8 text-center">
+            <div className="rounded-card border border-red-500/20 bg-red-900/10 p-lg text-center">
               <p className="text-red-400">{errorMessage}</p>
             </div>
           )}
 
           {/* Content */}
           {!isLoading && !hasError && (
-            <div className="grid gap-8 lg:grid-cols-[350px_1fr]">
+            <div className="grid gap-lg lg:grid-cols-[350px_1fr]">
               {/* Search Panel */}
               <aside>
                 <SearchPanel

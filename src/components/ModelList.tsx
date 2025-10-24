@@ -61,8 +61,8 @@ export const ModelList = ({
 
   if (models.length === 0) {
     return (
-      <div className="rounded-2xl bg-slate-900/60 p-8 text-center">
-        <p className="text-slate-400">
+      <div className="rounded-card bg-surface-base p-lg text-center">
+        <p className="text-text-secondary">
           No models match your search criteria. Try adjusting your filters.
         </p>
       </div>
@@ -70,7 +70,7 @@ export const ModelList = ({
   }
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-lg sm:grid-cols-2 lg:grid-cols-3">
       {models.map((model) => (
         <div
           key={model.id}
@@ -78,29 +78,31 @@ export const ModelList = ({
           tabIndex={0}
           onClick={() => handleModelClick(model)}
           onKeyDown={(e) => handleKeyDown(e, model)}
-          className="group cursor-pointer overflow-hidden rounded-xl border border-slate-700/50 bg-slate-900/60 transition hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          className="group cursor-pointer overflow-hidden rounded-card border border-border-muted bg-surface-base transition-hover hover:border-border-hover hover:shadow-card-hover focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-focus-ring"
         >
           {/* Model Image - Larger, more prominent */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-800">
+          <div className="relative aspect-[4/3] w-full overflow-hidden bg-bg-elevated">
             {!imageErrors.has(model.id) ? (
               <img
                 src={model.imagePath}
                 alt={`Model ${model.id}`}
-                className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                className="h-full w-full object-cover transition-transform duration-base ease-out group-hover:scale-105"
                 onError={() => handleImageError(model.id)}
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-bg-elevated to-bg-base">
                 <div className="text-center">
-                  <div className="mb-2 text-5xl font-bold text-slate-600">
+                  <div className="mb-2 text-5xl font-bold text-text-disabled">
                     {model.id}
                   </div>
-                  <div className="text-xs text-slate-500">Model Preview</div>
+                  <div className="text-xs text-text-tertiary">
+                    Model Preview
+                  </div>
                 </div>
               </div>
             )}
             {model.tourPath && (
-              <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-emerald-500/95 px-2.5 py-1.5 text-xs font-semibold text-slate-900 shadow-lg backdrop-blur-sm">
+              <div className="absolute right-sm top-sm flex items-center gap-xs rounded-badge bg-primary px-sm py-xs text-xs font-semibold text-text-inverse shadow-elevated backdrop-blur-sm">
                 <Video className="h-3 w-3" />
                 <span>360° Tour</span>
               </div>
@@ -108,25 +110,25 @@ export const ModelList = ({
           </div>
 
           {/* Model Details - Compact */}
-          <div className="p-4">
-            <div className="mb-2 flex items-start justify-between">
-              <h3 className="text-lg font-bold text-slate-100 transition group-hover:text-emerald-400">
+          <div className="p-md">
+            <div className="mb-sm flex items-start justify-between">
+              <h3 className="text-lg font-bold text-text-primary transition-color group-hover:text-text-accent">
                 Model {model.id}
               </h3>
-              <span className="rounded-md bg-slate-800 px-2 py-0.5 text-xs font-medium text-emerald-400">
+              <span className="rounded-badge bg-bg-elevated px-sm py-xs text-xs font-medium text-text-accent">
                 {model.areaM2} m²
               </span>
             </div>
 
             {/* Specs - Compact Grid */}
-            <div className="mb-3 flex items-center gap-4 text-xs text-slate-400">
-              <div className="flex items-center gap-1.5">
+            <div className="mb-sm flex items-center gap-md text-xs text-text-secondary">
+              <div className="flex items-center gap-xs">
                 <BedDouble className="h-3.5 w-3.5" />
                 <span>
                   {model.bedrooms} {model.bedrooms === 1 ? "Bed" : "Beds"}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-xs">
                 <Bath className="h-3.5 w-3.5" />
                 <span>
                   {model.bathrooms} {model.bathrooms === 1 ? "Bath" : "Baths"}
@@ -135,9 +137,9 @@ export const ModelList = ({
             </div>
 
             {/* Call to Action - Minimal */}
-            <div className="flex items-center justify-between border-t border-slate-700/30 pt-2.5 text-xs">
-              <span className="text-slate-500">Click to view details</span>
-              <ChevronRight className="h-3.5 w-3.5 text-emerald-400 transition group-hover:translate-x-1" />
+            <div className="flex items-center justify-between border-t border-border-muted pt-2.5 text-xs">
+              <span className="text-text-tertiary">Click to view details</span>
+              <ChevronRight className="h-3.5 w-3.5 text-text-accent transition group-hover:translate-x-1" />
             </div>
           </div>
         </div>

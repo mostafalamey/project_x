@@ -633,34 +633,34 @@ export const MapView = () => {
                               height={landmark.image ? 220 : 140}
                               overflow="visible"
                             >
-                              <div className="rounded-lg bg-slate-900/95 p-3 shadow-2xl border border-slate-700/50 backdrop-blur-sm">
+                              <div className="rounded-card bg-surface-elevated/95 p-sm shadow-tooltip border border-border-muted backdrop-blur-sm">
                                 {landmark.image && (
                                   <img
                                     src={`/data/${landmark.image}`}
                                     alt={landmark.name}
-                                    className="w-full h-24 object-cover rounded-md mb-2"
+                                    className="w-full h-24 object-cover rounded-md mb-sm"
                                     onError={(e) => {
                                       e.currentTarget.style.display = "none";
                                     }}
                                   />
                                 )}
-                                <h3 className="text-sm font-bold text-slate-100 mb-1.5">
+                                <h3 className="text-sm font-bold text-text-primary mb-xs">
                                   {landmark.name}
                                 </h3>
                                 {landmark.description && (
-                                  <p className="text-xs text-slate-300 mb-2 leading-relaxed">
+                                  <p className="text-xs text-text-secondary mb-sm leading-relaxed">
                                     {landmark.description}
                                   </p>
                                 )}
-                                <div className="flex items-center gap-3 text-[10px] text-slate-400">
+                                <div className="flex items-center gap-sm text-caption text-text-tertiary">
                                   {typeof landmark.distanceM === "number" && (
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-xs">
                                       <MapPin className="w-3 h-3" />
                                       <span>{landmark.distanceM} km away</span>
                                     </div>
                                   )}
                                   {typeof landmark.timeMin === "number" && (
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-xs">
                                       <Clock className="w-3 h-3" />
                                       <span>{landmark.timeMin} min drive</span>
                                     </div>
@@ -684,16 +684,14 @@ export const MapView = () => {
         <div className="pointer-events-none absolute inset-0 h-1/3 bg-gradient-to-b from-slate-950/70 to-transparent" />
         <div className="pointer-events-none absolute bottom-0 inset-x-0 h-1/4 bg-gradient-to-t from-slate-950/70 to-transparent" />
 
-        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-10">
-          <div className="flex w-full max-w-xl flex-col gap-4">
-            <div className="pointer-events-auto space-y-4">
-              <span className="text-xs font-semibold uppercase tracking-[0.5em] text-emerald-300">
+        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-lg">
+          <div className="flex w-full max-w-xl flex-col gap-md">
+            <div className="pointer-events-auto space-y-md">
+              <span className="text-xs font-semibold uppercase tracking-[0.5em] text-primary">
                 Aurora Complex
               </span>
-              <h1 className="text-4xl font-bold sm:text-5xl">
-                Immersive Map View
-              </h1>
-              <p className="text-sm text-slate-200">
+              <h1 className="text-heading-1 font-bold">Immersive Map View</h1>
+              <p className="text-sm text-text-primary leading-relaxed">
                 Discover the campus from a bird&apos;s-eye perspective. Hover
                 over a hotspot to learn more, trace animated routes from the
                 gateway to nearby points of interest, and enter the master plan
@@ -703,7 +701,7 @@ export const MapView = () => {
           </div>
           <div className="flex w-full items-center justify-center">
             <motion.div
-              className="pointer-events-auto rounded-full bg-slate-950/80 px-6 py-3 text-xs font-semibold uppercase tracking-[0.4em] text-slate-200 shadow-lg shadow-slate-950/60"
+              className="pointer-events-auto rounded-badge bg-surface-elevated/80 px-lg py-sm text-xs font-semibold uppercase tracking-[0.4em] text-text-secondary shadow-elevated"
               key={statusMessage}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}

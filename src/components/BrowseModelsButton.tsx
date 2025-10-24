@@ -25,7 +25,7 @@ export const BrowseModelsButton = ({
   return (
     <button
       type="button"
-      className={`rounded-full border border-emerald-500/70 bg-emerald-500/10 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.45em] transition hover:border-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 ${className}`}
+      className={`rounded-badge border border-border-focus/70 bg-primary/10 px-md py-sm text-xs font-semibold uppercase tracking-[0.45em] transition-hover hover:border-primary-hover hover:bg-primary/20 hover:text-primary-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${className}`}
       onClick={onClick}
       aria-label={
         isOpen ? "Hide model browser panel" : "Browse available unit models"

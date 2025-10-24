@@ -1,0 +1,158 @@
+/**
+ * Design Tokens: Colors
+ * 
+ * Base color palette and semantic color tokens for the Aurora design system.
+ * These tokens are used across all UI components for consistent theming.
+ * 
+ * Token naming convention:
+ * - Base palette: --color-{name}-{shade}
+ * - Semantic: --color-{purpose}
+ * - Contextual: --color-{element}-{state}
+ * 
+ * Usage in Tailwind: bg-primary, text-secondary, border-default, etc.
+ */
+
+:root {
+  /* ============================================
+     BASE PALETTE - Foundation colors
+     ============================================ */
+
+  /* Primary - Emerald (Brand color) */
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+
+  /* Neutral - Slate (Backgrounds, text, borders) */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+
+  /* Accent - Amber (Reserved, warnings) */
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+
+  /* Status - Red (Error states) */
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-900: #7f1d1d;
+
+  /* ============================================
+     SEMANTIC TOKENS - Purpose-based colors
+     ============================================ */
+
+  /* Brand / Primary */
+  --color-primary: var(--color-emerald-500);
+  --color-primary-rgb: 16, 185, 129; /* emerald-500 RGB for Tailwind opacity */
+  --color-primary-hover: var(--color-emerald-400);
+  --color-primary-muted: var(--color-emerald-300);
+
+  /* Secondary */
+  --color-secondary: var(--color-slate-600);
+  --color-secondary-hover: var(--color-slate-500);
+
+  /* Success */
+  --color-success: var(--color-emerald-500);
+  --color-success-bg: rgba(
+    16,
+    185,
+    129,
+    0.1
+  ); /* emerald-500 with 10% opacity */
+
+  /* Warning */
+  --color-warning: var(--color-amber-500);
+  --color-warning-bg: rgba(245, 158, 11, 0.1); /* amber-500 with 10% opacity */
+
+  /* Error */
+  --color-error: var(--color-red-500);
+  --color-error-rgb: 239, 68, 68; /* red-500 RGB for Tailwind opacity */
+  --color-error-bg: rgba(239, 68, 68, 0.1); /* red-500 with 10% opacity */
+
+  /* Info (using primary color) */
+  --color-info: var(--color-primary);
+  --color-info-bg: rgba(16, 185, 129, 0.1);
+
+  /* ============================================
+     CONTEXTUAL TOKENS - Element-specific colors
+     ============================================ */
+
+  /* Text Colors */
+  --color-text-primary: var(--color-slate-100);
+  --color-text-secondary: var(--color-slate-400);
+  --color-text-tertiary: var(--color-slate-500);
+  --color-text-disabled: var(--color-slate-600);
+  --color-text-inverse: var(--color-slate-950);
+  --color-text-accent: var(--color-emerald-400);
+
+  /* Background Colors */
+  --color-bg-base: var(--color-slate-950);
+  --color-bg-elevated: var(--color-slate-900);
+  --color-bg-overlay: rgba(15, 23, 42, 0.8); /* slate-900 with 80% opacity */
+  --color-bg-card: rgba(15, 23, 42, 0.6); /* slate-900 with 60% opacity */
+  --color-bg-hover: rgba(15, 23, 42, 0.8);
+  --color-bg-input: rgba(2, 6, 23, 0.6); /* slate-950 with 60% opacity */
+
+  /* Border Colors */
+  --color-border-default: var(--color-slate-700);
+  --color-border-light: var(--color-slate-500);
+  --color-border-muted: rgba(51, 65, 85, 0.5); /* slate-700 with 50% opacity */
+  --color-border-focus: var(--color-emerald-500);
+  --color-border-hover: rgba(
+    16,
+    185,
+    129,
+    0.5
+  ); /* emerald-500 with 50% opacity */
+
+  /* Surface Colors (for cards, panels, etc.) */
+  --color-surface-base: var(--color-bg-card);
+  --color-surface-base-rgb: 15, 23, 42; /* slate-900 RGB for Tailwind opacity */
+  --color-surface-elevated: var(--color-bg-overlay);
+  --color-surface-elevated-rgb: 15, 23, 42; /* slate-900 RGB for Tailwind opacity */
+  --color-surface-hover: var(--color-bg-hover);
+  --color-surface-hover-rgb: 15, 23, 42; /* slate-900 RGB for Tailwind opacity */
+
+  /* Status-specific Background Colors */
+  --color-status-available-bg: rgba(
+    16,
+    185,
+    129,
+    0.2
+  ); /* emerald-500 with 20% opacity */
+  --color-status-available-text: var(--color-emerald-400);
+  --color-status-available-border: rgba(16, 185, 129, 0.3);
+
+  --color-status-reserved-bg: rgba(
+    245,
+    158,
+    11,
+    0.2
+  ); /* amber-500 with 20% opacity */
+  --color-status-reserved-text: var(--color-amber-400);
+  --color-status-reserved-border: rgba(245, 158, 11, 0.3);
+
+  --color-status-sold-bg: rgba(
+    100,
+    116,
+    139,
+    0.2
+  ); /* slate-600 with 20% opacity */
+  --color-status-sold-text: var(--color-slate-400);
+  --color-status-sold-border: rgba(100, 116, 139, 0.3);
+
+  /* Focus Ring */
+  --color-focus-ring: rgba(
+    16,
+    185,
+    129,
+    0.2
+  ); /* emerald-500 with 20% opacity */
+}

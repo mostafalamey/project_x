@@ -607,9 +607,9 @@ export const BuildingView = () => {
         <div className="pointer-events-none absolute bottom-0 inset-x-0 h-1/4 bg-gradient-to-t from-slate-950/70 to-transparent" />
 
         {/* UI Layer - not zoomed */}
-        <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-8 sm:p-12">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-            <div className="pointer-events-auto flex flex-col gap-4">
+        <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-lg sm:p-xl">
+          <div className="flex flex-col gap-lg sm:flex-row sm:items-start sm:justify-between">
+            <div className="pointer-events-auto flex flex-col gap-md">
               <BackNav
                 label="Master plan"
                 to={
@@ -619,13 +619,13 @@ export const BuildingView = () => {
                 }
               />
               <div>
-                <span className="text-xs font-semibold uppercase tracking-[0.45em] text-emerald-300">
+                <span className="text-xs font-semibold uppercase tracking-[0.45em] text-text-accent">
                   {state.data?.id ?? "Building"}
                 </span>
                 <h1 className="mt-3 text-4xl font-bold sm:text-5xl">
                   {state.data?.name ?? "Building Elevation"}
                 </h1>
-                <p className="mt-3 max-w-xl text-sm text-slate-200">
+                <p className="mt-3 max-w-xl text-sm">
                   Hover floors to preview stats, then click to dive into the
                   plan. The elevation stays immersive while overlays float above
                   the imagery.
@@ -633,8 +633,8 @@ export const BuildingView = () => {
               </div>
             </div>
             {state.data ? (
-              <div className="pointer-events-auto flex flex-col items-end gap-4">
-                <div className="flex flex-col items-end gap-2 rounded-3xl border border-slate-700/60 bg-slate-900/50 px-6 py-4 text-xs uppercase tracking-[0.45em] text-slate-200">
+              <div className="pointer-events-auto flex flex-col items-end gap-md">
+                <div className="flex flex-col items-end gap-sm rounded-card border border-border-muted bg-surface-elevated/50 px-lg py-md text-xs uppercase tracking-[0.45em] text-text-secondary">
                   <span>Total floors · {sortedFloors.length}</span>
                 </div>
                 <BrowseModelsButton
@@ -649,7 +649,7 @@ export const BuildingView = () => {
             {statusMessage ? (
               <motion.div
                 key={statusMessage}
-                className="pointer-events-none self-center rounded-full bg-slate-950/85 px-6 py-3 text-xs font-semibold uppercase tracking-[0.45em] text-slate-200 shadow-lg shadow-slate-950/60"
+                className="pointer-events-none self-center rounded-badge bg-surface-elevated/85 px-lg py-sm text-xs font-semibold uppercase tracking-[0.45em] text-text-secondary shadow-elevated"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
@@ -690,19 +690,19 @@ export const BuildingView = () => {
               onClick={() => setShowSearch(false)}
             >
               <motion.div
-                className="h-full w-full max-w-2xl overflow-y-auto bg-slate-900/95 p-8 shadow-2xl"
+                className="h-full w-full max-w-2xl overflow-y-auto bg-surface-elevated/95 p-lg shadow-modal"
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 300 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="text-2xl font-bold">Browse Models</h2>
+                <div className="mb-lg flex items-center justify-between">
+                  <h2 className="text-heading-3 font-bold">Browse Models</h2>
                   <button
                     type="button"
                     onClick={() => setShowSearch(false)}
-                    className="rounded-full p-2 transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    className="rounded-button p-sm transition-hover hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                     aria-label="Close search panel"
                   >
                     <X className="h-6 w-6" />
@@ -711,18 +711,18 @@ export const BuildingView = () => {
 
                 {modelsState.status === "loading" ||
                 modelsState.status === "idle" ? (
-                  <div className="flex items-center justify-center py-20">
+                  <div className="flex items-center justify-center py-2xl">
                     <div className="text-center">
-                      <Loader2 className="mb-4 inline-block h-12 w-12 animate-spin text-emerald-500" />
-                      <p className="text-slate-400">Loading models...</p>
+                      <Loader2 className="mb-md inline-block h-12 w-12 animate-spin text-primary" />
+                      <p className="text-text-secondary">Loading models...</p>
                     </div>
                   </div>
                 ) : modelsState.status === "error" ? (
-                  <div className="rounded-2xl border border-red-500/20 bg-red-900/10 p-8 text-center">
-                    <p className="text-red-400">{modelsState.error}</p>
+                  <div className="rounded-card border border-error/20 bg-error/10 p-lg text-center">
+                    <p className="text-error">{modelsState.error}</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-lg">
                     <SearchPanel
                       filters={filters}
                       onFiltersChange={setFilters}

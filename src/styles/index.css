@@ -1,3 +1,16 @@
+/* ============================================
+   DESIGN TOKENS
+   Import order: base tokens, then theme variants
+   ============================================ */
+@import "./tokens/colors.css";
+@import "./tokens/spacing.css";
+@import "./tokens/typography.css";
+@import "./tokens/shadows.css";
+@import "./tokens/borders.css";
+@import "./tokens/transitions.css";
+@import "./tokens/themes/light.css";
+@import "./tokens/themes/dark.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,8 +26,8 @@ body {
   overflow: hidden; /* Prevent scrollbars during transitions */
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  background-color: #0f172a;
-  color: #f8fafc;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
 }
 
 a {
@@ -25,21 +38,21 @@ a {
 button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible {
-  outline: 2px solid #34d399; /* emerald-400 */
+  outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
 /* Focus styles for interactive hotspots */
 .hotspot-focus:focus-visible {
-  outline: 3px solid #34d399;
+  outline: 3px solid var(--color-border-focus);
   outline-offset: 3px;
   filter: brightness(1.2);
 }
 
 /* Ensure focus styles are visible on dark backgrounds */
 :focus-visible {
-  outline-color: #34d399;
+  outline-color: var(--color-border-focus);
 }
 
 /* Panorama hotspot pulse animation */

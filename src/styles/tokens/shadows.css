@@ -1,0 +1,102 @@
+/**
+ * Design Tokens: Shadows
+ * 
+ * Elevation and depth system using shadows.
+ * Three-level hierarchy for UI layering.
+ * 
+ * Usage:
+ * - shadow-sm: Subtle elevation (cards, buttons)
+ * - shadow-md: Medium elevation (dropdowns, popovers)
+ * - shadow-lg: High elevation (modals, dialogs)
+ * 
+ * Tailwind classes: shadow-sm, shadow-md, shadow-lg, shadow-elevated
+ */
+
+:root {
+  /* ============================================
+     SHADOW SCALE - Elevation levels
+     ============================================ */
+
+  /* No shadow - Flat elements */
+  --shadow-none: none;
+
+  /* Small - Subtle elevation (1-2px offset) */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+  /* Medium - Standard elevation (4-6px offset) */
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+  /* Large - High elevation (10-15px offset) */
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Extra large - Prominent elevation (20-25px offset) */
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* 2x large - Maximum elevation (modals, overlays) */
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* ============================================
+     INNER SHADOWS
+     ============================================ */
+
+  /* Inner shadow - Inset elements */
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+  /* ============================================
+     COLORED SHADOWS - Brand accent
+     ============================================ */
+
+  /* Primary color glow */
+  --shadow-primary-sm: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  --shadow-primary-md: 0 0 0 4px rgba(16, 185, 129, 0.15);
+  --shadow-primary-lg: 0 4px 12px 0 rgba(16, 185, 129, 0.2);
+
+  /* Error color glow */
+  --shadow-error-sm: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  --shadow-error-md: 0 0 0 4px rgba(239, 68, 68, 0.15);
+
+  /* Success color glow */
+  --shadow-success-sm: 0 0 0 3px rgba(16, 185, 129, 0.1);
+
+  /* ============================================
+     SEMANTIC SHADOWS - Component-specific
+     ============================================ */
+
+  /* Card shadows */
+  --shadow-card: var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+
+  /* Dropdown/Popover shadows */
+  --shadow-dropdown: var(--shadow-lg);
+
+  /* Tooltip shadows */
+  --shadow-tooltip: var(--shadow-xl);
+
+  /* Modal/Dialog shadows */
+  --shadow-modal: var(--shadow-2xl);
+
+  /* Elevated elements (floating action buttons, etc.) */
+  --shadow-elevated: var(--shadow-lg);
+
+  /* Focus ring shadow */
+  --shadow-focus: 0 0 0 3px var(--color-focus-ring);
+}
+
+/* ============================================
+   DARK MODE ADJUSTMENTS
+   ============================================ */
+
+.dark {
+  /* Increase shadow intensity in dark mode for better contrast */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
+    0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6),
+    0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}

@@ -1,0 +1,78 @@
+/**
+ * Light Theme Variant
+ * 
+ * Overrides color tokens for light mode.
+ * Applied when the <html> element does NOT have the "dark" class.
+ * 
+ * Design approach:
+ * - Inverts dark/light shades for backgrounds and text
+ * - Maintains brand colors (emerald) with adjusted opacity
+ * - Increases contrast for better readability in light mode
+ */
+
+:root {
+  /* Text Colors - Inverted for light mode */
+  --color-text-primary: var(--color-slate-900);
+  --color-text-secondary: var(--color-slate-600);
+  --color-text-tertiary: var(--color-slate-500);
+  --color-text-disabled: var(--color-slate-400);
+  --color-text-inverse: var(--color-slate-50);
+  --color-text-accent: var(--color-emerald-600);
+
+  /* Background Colors - Inverted for light mode */
+  --color-bg-base: var(--color-slate-50);
+  --color-bg-elevated: var(--color-slate-100);
+  --color-bg-overlay: rgba(248, 250, 252, 0.95); /* slate-50 with 95% opacity */
+  --color-bg-card: rgba(255, 255, 255, 0.8); /* white with 80% opacity */
+  --color-bg-hover: rgba(241, 245, 249, 0.9); /* slate-100 with 90% opacity */
+  --color-bg-input: rgba(255, 255, 255, 0.7);
+
+  /* Border Colors - Adjusted for light mode */
+  --color-border-default: var(--color-slate-300);
+  --color-border-muted: rgba(
+    203,
+    213,
+    225,
+    0.6
+  ); /* slate-300 with 60% opacity */
+  --color-border-focus: var(--color-emerald-500);
+  --color-border-hover: rgba(16, 185, 129, 0.4);
+
+  /* Surface Colors */
+  --color-surface-base: var(--color-bg-card);
+  --color-surface-elevated: var(--color-bg-elevated);
+  --color-surface-hover: var(--color-bg-hover);
+
+  /* Primary Colors - Slightly adjusted for light mode */
+  --color-primary: var(--color-emerald-600);
+  --color-primary-hover: var(--color-emerald-500);
+  --color-primary-muted: var(--color-emerald-400);
+
+  /* Status Colors - Light mode adjustments */
+  --color-status-available-bg: rgba(16, 185, 129, 0.1);
+  --color-status-available-text: var(--color-emerald-700);
+  --color-status-available-border: rgba(16, 185, 129, 0.3);
+
+  --color-status-reserved-bg: rgba(245, 158, 11, 0.1);
+  --color-status-reserved-text: var(--color-amber-700);
+  --color-status-reserved-border: rgba(245, 158, 11, 0.3);
+
+  --color-status-sold-bg: rgba(100, 116, 139, 0.1);
+  --color-status-sold-text: var(--color-slate-600);
+  --color-status-sold-border: rgba(100, 116, 139, 0.3);
+
+  /* Success/Warning/Error - Adjusted for light backgrounds */
+  --color-success-bg: rgba(16, 185, 129, 0.08);
+  --color-warning-bg: rgba(245, 158, 11, 0.08);
+  --color-error-bg: rgba(239, 68, 68, 0.08);
+
+  /* Focus Ring */
+  --color-focus-ring: rgba(16, 185, 129, 0.15);
+}
+
+/* Add emerald-600 and emerald-700 for light theme */
+:root {
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-amber-700: #b45309;
+}

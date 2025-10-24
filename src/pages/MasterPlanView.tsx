@@ -942,28 +942,28 @@ export const MasterPlanView = () => {
         <div className="pointer-events-none absolute bottom-0 inset-x-0 h-1/4 bg-gradient-to-t from-slate-950/70 to-transparent" />
 
         {/* UI Layer - not zoomed */}
-        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-10">
-          <div className="flex w-full items-start justify-between gap-4">
-            <div className="pointer-events-auto flex flex-col gap-3">
+        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-lg">
+          <div className="flex w-full items-start justify-between gap-md">
+            <div className="pointer-events-auto flex flex-col gap-sm">
               <BackNav label="Map" to="/" />
               <div>
-                <span className="text-xs font-semibold uppercase tracking-[0.5em] text-emerald-300">
+                <span className="text-xs font-semibold uppercase tracking-[0.5em] text-primary">
                   Aurora Complex
                 </span>
-                <h1 className="mt-3 text-4xl font-bold sm:text-5xl">
+                <h1 className="mt-sm text-heading-1 font-bold">
                   Master Plan View
                 </h1>
-                <p className="mt-3 max-w-xl text-sm text-slate-200">
+                <p className="mt-sm max-w-xl text-sm text-text-primary">
                   Rotate through cinematic angles, explore up to four hotspots
                   per building, and dive straight into elevation views.
                 </p>
               </div>
             </div>
-            <div className="pointer-events-auto flex flex-col items-end gap-3 text-xs font-semibold uppercase tracking-[0.45em] text-slate-200">
-              <div className="flex items-center gap-3">
+            <div className="pointer-events-auto flex flex-col items-end gap-sm text-xs font-semibold uppercase tracking-[0.45em] text-text-secondary">
+              <div className="flex items-center gap-sm">
                 <button
                   type="button"
-                  className="rounded-full border border-slate-500/70 px-4 py-2 transition hover:border-emerald-400 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                  className="rounded-badge border border-light px-md py-sm transition-hover hover:border-primary-hover hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   onClick={() => handleCycle(-1)}
                   disabled={
                     state.status !== "success" ||
@@ -975,7 +975,7 @@ export const MasterPlanView = () => {
                   Prev
                 </button>
                 <div
-                  className="rounded-full border border-slate-500/70 px-4 py-2"
+                  className="rounded-badge border border-light px-md py-sm"
                   role="status"
                   aria-live="polite"
                   aria-label={`Currently viewing angle ${normalizedIndex + 1}${
@@ -987,7 +987,7 @@ export const MasterPlanView = () => {
                 </div>
                 <button
                   type="button"
-                  className="rounded-full border border-slate-500/70 px-4 py-2 transition hover:border-emerald-400 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                  className="rounded-badge border border-light px-md py-sm transition-hover hover:border-primary-hover hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   onClick={() => handleCycle(1)}
                   disabled={
                     state.status !== "success" ||
@@ -999,7 +999,7 @@ export const MasterPlanView = () => {
                   Next
                 </button>
               </div>
-              <span className="text-[10px] uppercase tracking-[0.45em] text-slate-400">
+              <span className="text-caption uppercase tracking-[0.45em] text-text-tertiary">
                 {zoomPanState.zoom === 1
                   ? "Swipe horizontally or use controls"
                   : "Reset zoom to switch angles"}
@@ -1036,7 +1036,7 @@ export const MasterPlanView = () => {
           <div className="pointer-events-none flex w-full items-center justify-center">
             <motion.div
               key={statusMessage}
-              className="rounded-full bg-slate-950/80 px-6 py-3 text-xs font-semibold uppercase tracking-[0.45em] text-slate-200 shadow-lg shadow-slate-950/60"
+              className="rounded-badge bg-surface-elevated/80 px-lg py-sm text-xs font-semibold uppercase tracking-[0.45em] text-text-secondary shadow-elevated backdrop-blur-sm"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
@@ -1053,26 +1053,26 @@ export const MasterPlanView = () => {
         <AnimatePresence>
           {showSearch && (
             <motion.div
-              className="absolute inset-0 z-20 flex items-start justify-end bg-slate-950/40 backdrop-blur-sm"
+              className="absolute inset-0 z-20 flex items-start justify-end bg-bg-overlay backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowSearch(false)}
             >
               <motion.div
-                className="h-full w-full max-w-2xl overflow-y-auto bg-slate-900/95 p-8 shadow-2xl"
+                className="h-full w-full max-w-2xl overflow-y-auto bg-surface-elevated/95 p-lg shadow-modal"
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 300 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="text-2xl font-bold">Browse Models</h2>
+                <div className="mb-lg flex items-center justify-between">
+                  <h2 className="text-heading-3 font-bold">Browse Models</h2>
                   <button
                     type="button"
                     onClick={() => setShowSearch(false)}
-                    className="rounded-full p-2 transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    className="rounded-button p-sm transition-hover hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                     aria-label="Close search panel"
                   >
                     <X className="h-6 w-6" />
@@ -1080,18 +1080,18 @@ export const MasterPlanView = () => {
                 </div>
 
                 {modelsState.status === "loading" ? (
-                  <div className="flex items-center justify-center py-20">
+                  <div className="flex items-center justify-center py-2xl">
                     <div className="text-center">
-                      <Loader2 className="mb-4 inline-block h-12 w-12 animate-spin text-emerald-500" />
-                      <p className="text-slate-400">Loading models...</p>
+                      <Loader2 className="mb-md inline-block h-12 w-12 animate-spin text-primary" />
+                      <p className="text-text-secondary">Loading models...</p>
                     </div>
                   </div>
                 ) : modelsState.status === "error" ? (
-                  <div className="rounded-2xl border border-red-500/20 bg-red-900/10 p-8 text-center">
-                    <p className="text-red-400">{modelsState.error}</p>
+                  <div className="rounded-card border border-error/20 bg-error/10 p-lg text-center">
+                    <p className="text-error">{modelsState.error}</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-lg">
                     <SearchPanel
                       filters={filters}
                       onFiltersChange={setFilters}

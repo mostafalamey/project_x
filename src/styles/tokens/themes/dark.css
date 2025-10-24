@@ -1,0 +1,94 @@
+/**
+ * Dark Theme Variant
+ * 
+ * Overrides color tokens for dark mode.
+ * Applied when the <html> element has the "dark" class.
+ * 
+ * Design approach:
+ * - Uses the default dark color values from colors.css
+ * - This file exists for potential future dark mode adjustments
+ * - Can be used to fine-tune dark mode appearance
+ * 
+ * Note: Since the default tokens in colors.css are already dark-optimized,
+ * this file currently just reaffirms those values for clarity.
+ */
+
+.dark {
+  /* Text Colors - Dark mode (matches defaults from colors.css) */
+  --color-text-primary: var(--color-slate-100);
+  --color-text-secondary: var(--color-slate-400);
+  --color-text-tertiary: var(--color-slate-500);
+  --color-text-disabled: var(--color-slate-600);
+  --color-text-inverse: var(--color-slate-950);
+  --color-text-accent: var(--color-emerald-400);
+
+  /* Background Colors - Dark mode */
+  --color-bg-base: var(--color-slate-950);
+  --color-bg-elevated: var(--color-slate-900);
+  --color-bg-overlay: rgba(15, 23, 42, 0.8); /* slate-900 with 80% opacity */
+  --color-bg-card: rgba(15, 23, 42, 0.6); /* slate-900 with 60% opacity */
+  --color-bg-hover: rgba(15, 23, 42, 0.8);
+  --color-bg-input: rgba(2, 6, 23, 0.6); /* slate-950 with 60% opacity */
+
+  /* Border Colors - Dark mode */
+  --color-border-default: var(--color-slate-700);
+  --color-border-muted: rgba(51, 65, 85, 0.5); /* slate-700 with 50% opacity */
+  --color-border-focus: var(--color-emerald-500);
+  --color-border-hover: rgba(
+    16,
+    185,
+    129,
+    0.5
+  ); /* emerald-500 with 50% opacity */
+
+  /* Surface Colors */
+  --color-surface-base: var(--color-bg-card);
+  --color-surface-elevated: var(--color-bg-overlay);
+  --color-surface-hover: var(--color-bg-hover);
+
+  /* Primary Colors - Dark mode */
+  --color-primary: var(--color-emerald-500);
+  --color-primary-hover: var(--color-emerald-400);
+  --color-primary-muted: var(--color-emerald-300);
+
+  /* Status Colors - Dark mode */
+  --color-status-available-bg: rgba(
+    16,
+    185,
+    129,
+    0.2
+  ); /* emerald-500 with 20% opacity */
+  --color-status-available-text: var(--color-emerald-400);
+  --color-status-available-border: rgba(16, 185, 129, 0.3);
+
+  --color-status-reserved-bg: rgba(
+    245,
+    158,
+    11,
+    0.2
+  ); /* amber-500 with 20% opacity */
+  --color-status-reserved-text: var(--color-amber-400);
+  --color-status-reserved-border: rgba(245, 158, 11, 0.3);
+
+  --color-status-sold-bg: rgba(
+    100,
+    116,
+    139,
+    0.2
+  ); /* slate-600 with 20% opacity */
+  --color-status-sold-text: var(--color-slate-400);
+  --color-status-sold-border: rgba(100, 116, 139, 0.3);
+
+  /* Success/Warning/Error - Dark mode */
+  --color-success-bg: rgba(16, 185, 129, 0.1);
+  --color-warning-bg: rgba(245, 158, 11, 0.1);
+  --color-error-bg: rgba(239, 68, 68, 0.1);
+
+  /* Focus Ring */
+  --color-focus-ring: rgba(
+    16,
+    185,
+    129,
+    0.2
+  ); /* emerald-500 with 20% opacity */
+}

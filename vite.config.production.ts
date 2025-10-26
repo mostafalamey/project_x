@@ -2,8 +2,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 // Production config for GitHub Pages deployment
+// Use VITE_BASE_PATH env var to override base path (for local preview)
 export default defineConfig({
-  base: "/project_x/", // Base path for GitHub Pages (https://mostafalamey.github.io/project_x/)
+  base: process.env.VITE_BASE_PATH || "/project_x/", // Default to GitHub Pages path
   plugins: [react()],
   build: {
     outDir: "dist",

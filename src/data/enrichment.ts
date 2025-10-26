@@ -113,7 +113,9 @@ export const getTourPathByModelId = (
  */
 export const checkTourExists = async (modelId: string): Promise<boolean> => {
   try {
-    const response = await fetch(`/data/tours/${modelId}/tour.json`);
+    const response = await fetch(
+      `${import.meta.env.BASE_URL}data/tours/${modelId}/tour.json`
+    );
 
     // Check if response is ok and actually contains JSON
     if (!response.ok) {

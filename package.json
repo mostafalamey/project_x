@@ -9,8 +9,10 @@
         "dev:all": "powershell -ExecutionPolicy Bypass -File ./start-dev.ps1",
         "build": "vite build",
         "build:prod": "powershell -Command \"Copy-Item src/routes/index.production.tsx src/routes/index.tsx -Force\" && vite build --config vite.config.production.ts && powershell -Command \"git checkout src/routes/index.tsx 2>$null; if ($LASTEXITCODE -ne 0) { Write-Host 'Routes file unchanged' }\"",
+        "build:prod:preview": "powershell -Command \"$env:VITE_BASE_PATH='/'; Copy-Item src/routes/index.production.tsx src/routes/index.tsx -Force\" && vite build --config vite.config.production.ts && powershell -Command \"git checkout src/routes/index.tsx 2>$null; if ($LASTEXITCODE -ne 0) { Write-Host 'Routes file unchanged' }\"",
         "build:github": "npm run build:prod && powershell -Command \"Copy-Item .nojekyll dist/.nojekyll\"",
         "preview": "vite preview",
+        "preview:prod": "npm run build:prod:preview && vite preview",
         "lint": "eslint ./src --ext .ts,.tsx"
     },
     "engines": {

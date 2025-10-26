@@ -19,7 +19,7 @@ import { useZoomPan } from "../hooks/useZoomPan";
 import { prefersReducedMotion } from "../utils/accessibility";
 
 const MAP_VIEWBOX = { width: 1920, height: 1080 };
-const MAP_IMAGE = "/data/map.jpeg";
+const MAP_IMAGE = `${import.meta.env.BASE_URL}data/map.jpeg`;
 
 type FetchState<T> = {
   status: "idle" | "loading" | "error" | "success";
@@ -659,7 +659,9 @@ export const MapView = () => {
                               <div className="rounded-card bg-surface-elevated/95 p-sm shadow-tooltip border border-border-muted backdrop-blur-sm">
                                 {landmark.image && (
                                   <img
-                                    src={`/data/${landmark.image}`}
+                                    src={`${import.meta.env.BASE_URL}data/${
+                                      landmark.image
+                                    }`}
                                     alt={landmark.name}
                                     className="w-full h-24 object-cover rounded-md mb-sm"
                                     onError={(e) => {

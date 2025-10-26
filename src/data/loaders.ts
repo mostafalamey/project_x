@@ -10,11 +10,10 @@ import type {
 } from "./types";
 
 const ensureAbsolutePath = (path: string): string => {
-  if (!path.startsWith("/")) {
-    return `/${path}`;
-  }
-
-  return path;
+  // Remove leading slash if present
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  // Prepend base URL from Vite config
+  return `${import.meta.env.BASE_URL}${cleanPath}`;
 };
 
 const fetchJson = async <T>(path: string): Promise<T> => {

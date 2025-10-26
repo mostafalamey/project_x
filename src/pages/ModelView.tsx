@@ -18,6 +18,7 @@ import type { Model } from "../data/types";
 import { useModelRotation } from "../hooks/useModelRotation";
 import { useNavigationStore } from "../stores/navigationStore";
 import { prefersReducedMotion } from "../utils/accessibility";
+import { getDataUrl } from "../utils/paths";
 
 type FetchState<T> = {
   status: "idle" | "loading" | "error" | "success";
@@ -215,7 +216,7 @@ export const ModelView = () => {
 
   // Generate frame URL with zero-padding support
   const getFrameUrl = (frame: number): string => {
-    if (!rotation360) return model?.imagePath ?? "";
+    if (!rotation360) return getDataUrl(model?.imagePath) ?? "";
 
     const pattern = rotation360.filenamePattern ?? "frame-{index}.jpg";
 
@@ -227,12 +228,12 @@ export const ModelView = () => {
       : frame.toString();
 
     const filename = pattern.replace("{index}", frameStr);
-    return `${rotation360.folder}/${filename}`;
+    return getDataUrl(`${rotation360.folder}/${filename}`);
   };
 
   const currentImageUrl = rotation360
     ? getFrameUrl(currentFrame)
-    : model?.imagePath ?? "";
+    : getDataUrl(model?.imagePath) ?? "";
 
   // Reset image loaded state when URL changes
   useEffect(() => {

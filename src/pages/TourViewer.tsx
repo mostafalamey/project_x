@@ -12,6 +12,7 @@ import { loadTour } from "../data/loaders";
 import type { PanoScene, Tour, PanoLink } from "../data/types";
 import { useNavigationStore } from "../stores/navigationStore";
 import { prefersReducedMotion } from "../utils/accessibility";
+import { getDataUrl } from "../utils/paths";
 
 type FetchState<T> = {
   status: "idle" | "loading" | "error" | "success";
@@ -39,10 +40,10 @@ const findScene = (tour: Tour | null, sceneId: string | null) => {
 const getSceneImageUrl = (scene: PanoScene): string | undefined => {
   // New format: panoramaImage object
   if (scene.panoramaImage?.url) {
-    return scene.panoramaImage.url;
+    return getDataUrl(scene.panoramaImage.url);
   }
   // Old format: image string
-  return scene.image;
+  return getDataUrl(scene.image);
 };
 
 /**

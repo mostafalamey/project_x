@@ -33,6 +33,7 @@ import { usePointerPan } from "../hooks/usePointerPan";
 import { useZoomPan } from "../hooks/useZoomPan";
 import { useNavigationStore } from "../stores/navigationStore";
 import { prefersReducedMotion } from "../utils/accessibility";
+import { getDataUrl } from "../utils/paths";
 
 type FetchState<T> = {
   status: "idle" | "loading" | "error" | "success";
@@ -272,7 +273,7 @@ export const FloorPlanView = () => {
 
     image.addEventListener("load", handleLoad);
     image.addEventListener("error", handleError);
-    image.src = planImage;
+    image.src = getDataUrl(planImage);
 
     return () => {
       cancelled = true;
@@ -703,7 +704,7 @@ export const FloorPlanView = () => {
             {/* Floor plan image */}
             {state.data?.floorPlanImage && !imageError ? (
               <img
-                src={state.data.floorPlanImage}
+                src={getDataUrl(state.data.floorPlanImage)}
                 alt={`Floor ${state.data.floorNumber} plan`}
                 className="pointer-events-none absolute inset-0 h-full w-full object-cover"
               />

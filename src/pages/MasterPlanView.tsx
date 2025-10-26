@@ -31,6 +31,7 @@ import { usePointerPan } from "../hooks/usePointerPan";
 import { useZoomPan } from "../hooks/useZoomPan";
 import { useNavigationStore } from "../stores/navigationStore";
 import { prefersReducedMotion } from "../utils/accessibility";
+import { getDataUrl } from "../utils/paths";
 
 const VIEWBOX = { width: 1920, height: 1080 };
 const SEQUENCE_DURATION_MS = 500; // Total duration for animation sequence (1 second)
@@ -457,9 +458,9 @@ export const MasterPlanView = () => {
       const sources = new Set<string>();
 
       state.data.angles.forEach((angle) => {
-        sources.add(angle.image);
+        sources.add(getDataUrl(angle.image));
         buildSequenceFramePaths(angle.sequenceToNext).forEach((frame) => {
-          sources.add(frame);
+          sources.add(getDataUrl(frame));
         });
       });
 
@@ -610,7 +611,7 @@ export const MasterPlanView = () => {
       return src;
     }
 
-    const src = currentAngle?.image ?? null;
+    const src = currentAngle?.image ? getDataUrl(currentAngle.image) : null;
     return src;
   }, [currentAngle, sequenceState]);
 
@@ -667,8 +668,8 @@ export const MasterPlanView = () => {
       const framesToPlay = buildSequenceFramePaths(angle.sequenceToNext);
 
       if (framesToPlay.length > 0) {
-        const targetImage = state.data.angles[target].image;
-        const allFrames = [...framesToPlay, targetImage];
+        const targetImage = getDataUrl(state.data.angles[target].image);
+        const allFrames = [...framesToPlay.map(getDataUrl), targetImage];
 
         // Preload all frames before starting animation with extension fallback
         Promise.all(allFrames.map((src) => loadImageWithFallback(src)))
@@ -692,8 +693,11 @@ export const MasterPlanView = () => {
       const reverseFrames = buildSequenceFramePaths(targetAngle.sequenceToNext);
 
       if (reverseFrames.length > 0) {
-        const targetImage = state.data.angles[target].image;
-        const allFrames = [...reverseFrames.slice().reverse(), targetImage];
+        const targetImage = getDataUrl(state.data.angles[target].image);
+        const allFrames = [
+          ...reverseFrames.slice().reverse().map(getDataUrl),
+          targetImage,
+        ];
 
         // Preload all frames before starting animation with extension fallback
         Promise.all(allFrames.map((src) => loadImageWithFallback(src)))

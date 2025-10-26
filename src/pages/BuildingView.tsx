@@ -22,6 +22,7 @@ import { useKeyboard } from "../hooks/useKeyboard";
 import { usePointerPan } from "../hooks/usePointerPan";
 import { useZoomPan } from "../hooks/useZoomPan";
 import { prefersReducedMotion } from "../utils/accessibility";
+import { getDataUrl } from "../utils/paths";
 
 const VIEWBOX = { width: 1920, height: 1080 };
 const ZOOM_DELAY_MS = 360;
@@ -498,7 +499,7 @@ export const BuildingView = () => {
           {state.data?.elevationImage && !imageError ? (
             <motion.img
               key={state.data.elevationImage}
-              src={state.data.elevationImage}
+              src={getDataUrl(state.data.elevationImage)}
               alt={state.data.name ?? "Building elevation"}
               className="pointer-events-none h-full w-full object-cover"
               onLoad={() => setImageLoaded(true)}

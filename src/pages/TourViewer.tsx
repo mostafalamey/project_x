@@ -152,12 +152,23 @@ export const TourViewer = () => {
 
     const preloadAllImages = async () => {
       console.log("TourViewer: Starting to preload all panorama images...");
+
+      // Set a timeout to ensure viewer initializes even if preloading hangs
+      const timeoutPromise = new Promise<void>((resolve) => {
+        setTimeout(() => {
+          console.warn(
+            "TourViewer: Preload timeout reached, initializing viewer anyway"
+          );
+          resolve();
+        }, 5000); // 5 second timeout
+      });
+
       const imagePromises = tourData.scenes.map((scene) => {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
           const imageUrl = getSceneImageUrl(scene);
           if (!imageUrl) {
             console.warn(`TourViewer: No image URL for scene ${scene.id}`);
-            resolve();
+            resolve(); // Resolve anyway to not block
             return;
           }
 
@@ -173,23 +184,28 @@ export const TourViewer = () => {
             console.log(`TourViewer: Preloaded image for scene ${scene.id}`);
             resolve();
           };
-          img.onerror = () => {
+          img.onerror = (error) => {
             console.error(
-              `TourViewer: Failed to preload image for scene ${scene.id}`
+              `TourViewer: Failed to preload image for scene ${scene.id}`,
+              error,
+              imageUrl
             );
-            reject(new Error(`Failed to load ${scene.id}`));
+            // Resolve anyway to not block viewer initialization
+            resolve();
           };
           img.src = imageUrl;
         });
       });
 
       try {
-        await Promise.all(imagePromises);
-        console.log("TourViewer: All panorama images preloaded successfully");
-        setAllPanoramasPreloaded(true);
+        // Race between preloading all images and timeout
+        await Promise.race([Promise.all(imagePromises), timeoutPromise]);
+        console.log("TourViewer: All panorama images preload attempted");
       } catch (error) {
         console.error("TourViewer: Error preloading images:", error);
-        // Continue anyway, some images might have loaded
+      } finally {
+        // Always set preloaded to true so viewer can initialize
+        // Viewer will handle missing images with its own error handling
         setAllPanoramasPreloaded(true);
       }
     };

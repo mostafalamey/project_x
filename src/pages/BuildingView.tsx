@@ -270,12 +270,45 @@ export const BuildingView = () => {
     };
   }, [buildingId]);
 
-  // Reset image loaded state when elevation image URL changes
+  // Reset and preload image when elevation image URL changes
   useEffect(() => {
-    if (state.data?.elevationImage) {
+    const elevationImage = state.data?.elevationImage;
+
+    if (!elevationImage) {
       setImageLoaded(false);
       setImageError(false);
+      return;
     }
+
+    let cancelled = false;
+    setImageLoaded(false);
+    setImageError(false);
+
+    const img = new Image();
+
+    const handleLoad = () => {
+      if (!cancelled) {
+        setImageLoaded(true);
+        setImageError(false);
+      }
+    };
+
+    const handleError = () => {
+      if (!cancelled) {
+        setImageLoaded(false);
+        setImageError(true);
+      }
+    };
+
+    img.addEventListener("load", handleLoad);
+    img.addEventListener("error", handleError);
+    img.src = getDataUrl(elevationImage);
+
+    return () => {
+      cancelled = true;
+      img.removeEventListener("load", handleLoad);
+      img.removeEventListener("error", handleError);
+    };
   }, [state.data?.elevationImage]);
 
   // Load models when search panel is opened
@@ -502,8 +535,6 @@ export const BuildingView = () => {
               src={getDataUrl(state.data.elevationImage)}
               alt={state.data.name ?? "Building elevation"}
               className="pointer-events-none h-full w-full object-cover"
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageError(true)}
               initial={{ opacity: 0.4, scale: 1.02 }}
               animate={{
                 opacity: imageLoaded ? 1 : 0.4,

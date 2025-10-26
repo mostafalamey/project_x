@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import type { Model } from "../data/types";
 import { useNavigationStore } from "../stores/navigationStore";
+import { getDataUrl } from "../utils/paths";
 
 type ModelListProps = {
   models: Model[];
@@ -84,7 +85,7 @@ export const ModelList = ({
           <div className="relative aspect-[4/3] w-full overflow-hidden bg-bg-elevated">
             {!imageErrors.has(model.id) ? (
               <img
-                src={model.imagePath}
+                src={getDataUrl(model.imagePath)}
                 alt={`Model ${model.id}`}
                 className="h-full w-full object-cover transition-transform duration-base ease-out group-hover:scale-105"
                 onError={() => handleImageError(model.id)}

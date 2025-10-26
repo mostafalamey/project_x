@@ -2,9 +2,9 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Runs on pushes targeting the default branch
+  # Runs on pushes targeting these branches
   push:
-    branches: ["main", "master"]
+    branches: ["main", "master", "004-admin-config-dashboard"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

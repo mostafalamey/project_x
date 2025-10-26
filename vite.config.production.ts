@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 
 // Production config for GitHub Pages deployment
 export default defineConfig({
-  base: "./", // Use relative paths for GitHub Pages
+  base: "/project_x/", // Base path for GitHub Pages (https://mostafalamey.github.io/project_x/)
   plugins: [react()],
   build: {
     outDir: "dist",

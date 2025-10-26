@@ -135,7 +135,7 @@ const centroidOfPolygons = (polygons: Polygon[]) => {
   };
 };
 
-const DEFAULT_SEQUENCE_PATTERN = "frame-{index}";
+const DEFAULT_SEQUENCE_PATTERN = "frame-{index}.jpeg";
 const SEQUENCE_INDEX_TOKEN = "{index}";
 const SUPPORTED_IMAGE_EXTENSIONS = [".jpeg", ".jpg", ".png"];
 
@@ -1092,7 +1092,7 @@ export const MasterPlanView = () => {
                       >
                         <div className="flex h-full w-full items-center justify-center">
                           <img
-                            src="/360_icon.svg"
+                            src={`${import.meta.env.BASE_URL}360_icon.svg`}
                             alt="360° View"
                             className={`transition-all ${
                               isHovered ? "size-32" : "size-16"

@@ -29,10 +29,11 @@ import type {
 import { useKeyboard } from "../hooks/useKeyboard";
 import { usePointerPan } from "../hooks/usePointerPan";
 import { useZoomPan } from "../hooks/useZoomPan";
+import { useNavigationStore } from "../stores/navigationStore";
 import { prefersReducedMotion } from "../utils/accessibility";
 
-const VIEWBOX = { width: 960, height: 600 };
-const SEQUENCE_FRAME_MS = 120;
+const VIEWBOX = { width: 1920, height: 1080 };
+const SEQUENCE_DURATION_MS = 500; // Total duration for animation sequence (1 second)
 
 type FetchState<T> = {
   status: "idle" | "loading" | "error" | "success";
@@ -77,35 +78,123 @@ const polygonToPointString = (polygon: Polygon) => {
 };
 
 const centroidOfPolygons = (polygons: Polygon[]) => {
-  let totalX = 0;
-  let totalY = 0;
-  let count = 0;
+  if (polygons.length === 0) return null;
+
+  let totalArea = 0;
+  let totalCx = 0;
+  let totalCy = 0;
 
   polygons.forEach((polygon) => {
-    for (let index = 0; index < polygon.length; index += 2) {
-      const x = polygon[index];
-      const y = polygon[index + 1];
+    if (polygon.length < 6) return; // Need at least 3 points (6 numbers)
 
-      if (typeof x === "number" && typeof y === "number") {
-        totalX += x;
-        totalY += y;
-        count += 1;
+    // Calculate polygon area and centroid using shoelace formula
+    let area = 0;
+    let cx = 0;
+    let cy = 0;
+    const numPoints = polygon.length / 2;
+
+    for (let i = 0; i < numPoints; i++) {
+      const x1 = polygon[i * 2];
+      const y1 = polygon[i * 2 + 1];
+      const x2 = polygon[((i + 1) % numPoints) * 2];
+      const y2 = polygon[((i + 1) % numPoints) * 2 + 1];
+
+      if (
+        typeof x1 !== "number" ||
+        typeof y1 !== "number" ||
+        typeof x2 !== "number" ||
+        typeof y2 !== "number"
+      ) {
+        continue;
       }
+
+      const cross = x1 * y2 - x2 * y1;
+      area += cross;
+      cx += (x1 + x2) * cross;
+      cy += (y1 + y2) * cross;
+    }
+
+    area = Math.abs(area) / 2;
+    if (area > 0) {
+      cx = Math.abs(cx / (6 * area));
+      cy = Math.abs(cy / (6 * area));
+      totalArea += area;
+      totalCx += cx * area;
+      totalCy += cy * area;
     }
   });
 
-  if (count === 0) {
+  if (totalArea === 0) {
     return null;
   }
 
   return {
-    x: totalX / count,
-    y: totalY / count,
+    x: totalCx / totalArea,
+    y: totalCy / totalArea,
   };
 };
 
-const DEFAULT_SEQUENCE_PATTERN = "frame-{index}.jpg";
+const DEFAULT_SEQUENCE_PATTERN = "frame-{index}";
 const SEQUENCE_INDEX_TOKEN = "{index}";
+const SUPPORTED_IMAGE_EXTENSIONS = [".jpeg", ".jpg", ".png"];
+
+// Helper to check if an image exists with any supported extension
+const findImageWithExtension = async (
+  basePath: string
+): Promise<string | null> => {
+  // If the path already has an extension, try it first
+  if (
+    SUPPORTED_IMAGE_EXTENSIONS.some((ext) =>
+      basePath.toLowerCase().endsWith(ext)
+    )
+  ) {
+    try {
+      const response = await fetch(basePath, { method: "HEAD" });
+      if (response.ok) return basePath;
+    } catch {
+      // Continue to try other extensions
+    }
+  }
+
+  // Remove any existing extension
+  const basePathWithoutExt = basePath.replace(/\.(jpe?g|png)$/i, "");
+
+  // Try each supported extension
+  for (const ext of SUPPORTED_IMAGE_EXTENSIONS) {
+    const testPath = `${basePathWithoutExt}${ext}`;
+    try {
+      const response = await fetch(testPath, { method: "HEAD" });
+      if (response.ok) {
+        return testPath;
+      }
+    } catch {
+      // Continue to next extension
+    }
+  }
+
+  return null;
+};
+
+// Load and resolve image with correct extension
+const loadImageWithFallback = (src: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(src);
+    img.onerror = async () => {
+      // Try to find the image with different extensions
+      const resolvedPath = await findImageWithExtension(src);
+      if (resolvedPath) {
+        const retryImg = new Image();
+        retryImg.onload = () => resolve(resolvedPath);
+        retryImg.onerror = () => reject(new Error(`Failed to load ${src}`));
+        retryImg.src = resolvedPath;
+      } else {
+        reject(new Error(`Failed to load ${src}`));
+      }
+    };
+    img.src = src;
+  });
+};
 
 const ensureLeadingSlash = (input: string) =>
   input.startsWith("/") ? input : `/${input}`;
@@ -146,7 +235,7 @@ const buildSequenceFramePaths = (sequence?: MasterPlanSequence) => {
   const pattern = sequence.filenamePattern ?? DEFAULT_SEQUENCE_PATTERN;
 
   return Array.from({ length: sequence.frameCount }, (_, offset) => {
-    const frameIndex = offset + 1;
+    const frameIndex = offset; // Start from 0, not 1
     const filename = formatFrameFilename(pattern, frameIndex);
 
     return `${normalizedFolder}/${filename}`;
@@ -163,59 +252,10 @@ const handleKeyActivation = (
   }
 };
 
-// Panorama hotspots - positions for 360 tour entry points
-type PanoramaHotspot = {
-  id: string;
-  tourId: string;
-  sceneId?: string;
-  angleIndex: number; // Which angle this hotspot appears on
-  x: number; // SVG coordinate
-  y: number; // SVG coordinate
-  label: string;
-};
-
-const PANORAMA_HOTSPOTS: PanoramaHotspot[] = [
-  {
-    id: "entrance-pano",
-    tourId: "street-view",
-    sceneId: "entrance",
-    angleIndex: 0,
-    x: 480,
-    y: 500,
-    label: "Main Entrance 360°",
-  },
-  {
-    id: "plaza-pano",
-    tourId: "street-view",
-    sceneId: "plaza",
-    angleIndex: 1,
-    x: 380,
-    y: 400,
-    label: "Central Plaza 360°",
-  },
-  {
-    id: "garden-pano",
-    tourId: "street-view",
-    sceneId: "garden",
-    angleIndex: 2,
-    x: 600,
-    y: 350,
-    label: "Garden View 360°",
-  },
-  {
-    id: "parking-pano",
-    tourId: "street-view",
-    sceneId: "parking",
-    angleIndex: 3,
-    x: 300,
-    y: 450,
-    label: "Parking Area 360°",
-  },
-];
-
 export const MasterPlanView = () => {
   const navigate = useNavigate();
   const { startTransition, direction } = useTransitionContext();
+  const { setTourBackLocation } = useNavigationStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const [state, setState] = useState<FetchState<MasterPlan>>(initialState);
 
@@ -245,6 +285,7 @@ export const MasterPlanView = () => {
   );
   const [hoveredPanoId, setHoveredPanoId] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   const [sequenceState, setSequenceState] = useState<SequenceState>({
     playing: false,
     frames: [],
@@ -422,9 +463,14 @@ export const MasterPlanView = () => {
         });
       });
 
-      sources.forEach((src) => {
-        const image = new Image();
-        image.src = src;
+      // Preload all images with extension fallback
+      const promises = Array.from(sources).map((src) =>
+        loadImageWithFallback(src)
+      );
+
+      // Wait for critical images (current angle and its transition frames)
+      Promise.all(promises).catch((error) => {
+        console.warn("Some images failed to preload:", error);
       });
     }
   }, [state.data]);
@@ -483,9 +529,12 @@ export const MasterPlanView = () => {
       return;
     }
 
+    // Calculate frame duration to make total animation 1 second
+    const frameDuration = SEQUENCE_DURATION_MS / sequenceState.frames.length;
+
     const timer = window.setTimeout(() => {
       setSequenceState((prev) => ({ ...prev, index: prev.index + 1 }));
-    }, SEQUENCE_FRAME_MS);
+    }, frameDuration);
 
     return () => window.clearTimeout(timer);
   }, [currentAngleIndex, sequenceState]);
@@ -557,11 +606,45 @@ export const MasterPlanView = () => {
         sequenceState.frames.length - 1
       );
 
-      return sequenceState.frames[frameIndex];
+      const src = sequenceState.frames[frameIndex];
+      return src;
     }
 
-    return currentAngle?.image ?? null;
+    const src = currentAngle?.image ?? null;
+    return src;
   }, [currentAngle, sequenceState]);
+
+  // Handle image loading state when displayImageSrc changes
+  useEffect(() => {
+    if (!displayImageSrc) {
+      setImageLoading(false);
+      return;
+    }
+
+    // Don't show loading state during sequence playback
+    if (sequenceState.playing) {
+      setImageLoading(false);
+      return;
+    }
+
+    setImageLoading(true);
+    setImageError(false);
+
+    const img = new Image();
+    img.onload = () => {
+      setImageLoading(false);
+    };
+    img.onerror = () => {
+      setImageLoading(false);
+      setImageError(true);
+    };
+    img.src = displayImageSrc;
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [displayImageSrc, sequenceState.playing]);
 
   const handleCycle = (direction: 1 | -1) => {
     if (
@@ -584,12 +667,24 @@ export const MasterPlanView = () => {
       const framesToPlay = buildSequenceFramePaths(angle.sequenceToNext);
 
       if (framesToPlay.length > 0) {
-        setSequenceState({
-          playing: true,
-          frames: [...framesToPlay, state.data.angles[target].image],
-          index: 0,
-          targetAngle: target,
-        });
+        const targetImage = state.data.angles[target].image;
+        const allFrames = [...framesToPlay, targetImage];
+
+        // Preload all frames before starting animation with extension fallback
+        Promise.all(allFrames.map((src) => loadImageWithFallback(src)))
+          .then((resolvedPaths) => {
+            setSequenceState({
+              playing: true,
+              frames: resolvedPaths,
+              index: 0,
+              targetAngle: target,
+            });
+          })
+          .catch((error) => {
+            console.warn("Failed to preload sequence frames:", error);
+            // Fallback to instant switch
+            setCurrentAngleIndex(target);
+          });
         return;
       }
     } else {
@@ -597,15 +692,24 @@ export const MasterPlanView = () => {
       const reverseFrames = buildSequenceFramePaths(targetAngle.sequenceToNext);
 
       if (reverseFrames.length > 0) {
-        setSequenceState({
-          playing: true,
-          frames: [
-            ...reverseFrames.slice().reverse(),
-            state.data.angles[target].image,
-          ],
-          index: 0,
-          targetAngle: target,
-        });
+        const targetImage = state.data.angles[target].image;
+        const allFrames = [...reverseFrames.slice().reverse(), targetImage];
+
+        // Preload all frames before starting animation with extension fallback
+        Promise.all(allFrames.map((src) => loadImageWithFallback(src)))
+          .then((resolvedPaths) => {
+            setSequenceState({
+              playing: true,
+              frames: resolvedPaths,
+              index: 0,
+              targetAngle: target,
+            });
+          })
+          .catch((error) => {
+            console.warn("Failed to preload sequence frames:", error);
+            // Fallback to instant switch
+            setCurrentAngleIndex(target);
+          });
         return;
       }
     }
@@ -651,12 +755,51 @@ export const MasterPlanView = () => {
     navigate(targetUrl);
   };
 
-  const handlePanoramaActivate = (hotspot: PanoramaHotspot) => {
-    const url = hotspot.sceneId
-      ? `/tour/${hotspot.tourId}?scene=${hotspot.sceneId}`
-      : `/tour/${hotspot.tourId}`;
-    navigate(url);
+  const handlePanoramaActivate = (
+    tourPointId: string,
+    panoramicImage: string
+  ) => {
+    // Extract the tour ID from the panoramic image path
+    // Format: /data/tours/street-view/fb5e7a65-0b3d-4bc2-afee-54b24145c1ac.jpg
+    const pathParts = panoramicImage.split("/");
+    const tourIdIndex = pathParts.findIndex((part) => part === "tours") + 1;
+    const tourId = pathParts[tourIdIndex];
+
+    if (tourId) {
+      // Store the current location with angle as the back location
+      const currentAngleParam = searchParams.get("angle") || "0";
+      const backUrl = `/masterplan?angle=${currentAngleParam}`;
+
+      console.log(
+        "DEBUG MasterPlanView: Setting tour back location to:",
+        backUrl
+      );
+      setTourBackLocation(backUrl);
+
+      // Also pass the angle in the tour URL so TourViewer can construct the back link
+      const url = `/tour/${tourId}?scene=${tourPointId}&backAngle=${currentAngleParam}`;
+      console.log("DEBUG MasterPlanView: Navigating to:", url);
+      navigate(url);
+    }
   };
+
+  // Derive panorama hotspots from tour points in the data
+  const panoramaHotspots = useMemo(() => {
+    if (!state.data?.tourPoints) return [];
+
+    return state.data.tourPoints.flatMap((tourPoint) =>
+      tourPoint.positions.map((position) => ({
+        id: `${tourPoint.id}-angle-${position.angleIndex}`,
+        tourPointId: tourPoint.id,
+        name: tourPoint.name,
+        angleIndex: position.angleIndex,
+        x: position.x,
+        y: position.y,
+        panoramicImage: tourPoint.panoramicImage,
+        initialView: tourPoint.initialView,
+      }))
+    );
+  }, [state.data?.tourPoints]);
 
   const statusMessage = useMemo(() => {
     if (state.status === "loading") {
@@ -672,9 +815,9 @@ export const MasterPlanView = () => {
     }
 
     if (hoveredPanoId) {
-      const pano = PANORAMA_HOTSPOTS.find((p) => p.id === hoveredPanoId);
+      const pano = panoramaHotspots.find((p) => p.id === hoveredPanoId);
       return pano
-        ? `Click to explore ${pano.label}`
+        ? `Click to explore ${pano.name} 360°`
         : "Click to explore 360° view";
     }
 
@@ -691,6 +834,7 @@ export const MasterPlanView = () => {
     activeStatusBuilding,
     hoveredBuildingId,
     hoveredPanoId,
+    panoramaHotspots,
     selectedBuildingId,
     sequenceState.playing,
     state,
@@ -782,157 +926,207 @@ export const MasterPlanView = () => {
             ease: [0.22, 1, 0.36, 1],
           }}
         >
+          {/* Loading indicator */}
+          {imageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-950">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+          )}
+
           {displayImageSrc && !imageError ? (
             <motion.img
-              key={displayImageSrc}
+              key={sequenceState.playing ? "sequence" : displayImageSrc}
               src={displayImageSrc}
               alt={
                 currentAngle ? `Master plan ${currentAngle.id}` : "Master plan"
               }
               className="h-full w-full object-cover"
+              style={{ opacity: imageLoading ? 0 : 1 }}
               onError={() => setImageError(true)}
-              initial={{ opacity: 0.4, scale: 1.02 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              initial={
+                sequenceState.playing ? false : { opacity: 0.4, scale: 1.02 }
+              }
+              animate={{ opacity: imageLoading ? 0 : 1, scale: 1 }}
+              transition={
+                sequenceState.playing
+                  ? { duration: 0 }
+                  : { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+              }
             />
-          ) : (
+          ) : !imageLoading ? (
             <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-950" />
-          )}
+          ) : null}
 
-          {/* SVG hotspots - in same transform container */}
-          <svg
-            className="pointer-events-auto absolute inset-0 h-full w-full"
-            viewBox={`0 0 ${VIEWBOX.width} ${VIEWBOX.height}`}
-            preserveAspectRatio="xMidYMid meet"
-            role="presentation"
-          >
-            {currentHotspots.map((hotspot) => {
-              const buildingInfo = buildingDictionary.get(hotspot.buildingId);
-              const isHovered = hoveredBuildingId === hotspot.buildingId;
-              const isSelected = selectedBuildingId === hotspot.buildingId;
-              const hasHoveredBuilding = hoveredBuildingId !== null;
+          {/* SVG hotspots - in same transform container, hidden during sequence */}
+          {!sequenceState.playing && (
+            <svg
+              className="pointer-events-auto absolute inset-0 h-full w-full"
+              viewBox={`0 0 ${VIEWBOX.width} ${VIEWBOX.height}`}
+              preserveAspectRatio="xMidYMid slice"
+              role="presentation"
+            >
+              {currentHotspots.map((hotspot) => {
+                const buildingInfo = buildingDictionary.get(hotspot.buildingId);
+                const isHovered = hoveredBuildingId === hotspot.buildingId;
+                const isSelected = selectedBuildingId === hotspot.buildingId;
+                const hasHoveredBuilding = hoveredBuildingId !== null;
 
-              const fillClass =
-                isHovered || isSelected
-                  ? "fill-emerald-400/10 stroke-emerald-200"
-                  : hasHoveredBuilding
-                  ? "fill-slate-950/50 stroke-emerald-200/50"
-                  : "fill-transparent stroke-emerald-200/50";
+                const fillClass =
+                  isHovered || isSelected
+                    ? "fill-emerald-400/10 stroke-emerald-200"
+                    : hasHoveredBuilding
+                    ? "fill-slate-950/50 stroke-emerald-200/50"
+                    : "fill-transparent stroke-emerald-200/50";
 
-              return (
-                <g
-                  key={`${hotspot.buildingId}-${currentAngle?.id ?? "angle"}`}
-                  className="cursor-pointer focus:outline-none focus-visible:outline-none"
-                  onClick={() =>
-                    handleHotspotActivate(
-                      hotspot.buildingId,
-                      hotspot.polygons[0]
-                    )
-                  }
-                  onPointerDown={(event) => {
-                    event.stopPropagation();
-                  }}
-                  onPointerUp={(event) => {
-                    event.stopPropagation();
-                  }}
-                  onMouseEnter={() => handleHoverStart(hotspot.buildingId)}
-                  onMouseLeave={() => handleHoverEnd(hotspot.buildingId)}
-                  onFocus={() => handleHoverStart(hotspot.buildingId)}
-                  onBlur={() => handleHoverEnd(hotspot.buildingId)}
-                  onKeyDown={(event) =>
-                    handleKeyActivation(event, () =>
+                return (
+                  <g
+                    key={`${hotspot.buildingId}-${currentAngle?.id ?? "angle"}`}
+                    className="cursor-pointer focus:outline-none focus-visible:outline-none"
+                    onClick={() =>
                       handleHotspotActivate(
                         hotspot.buildingId,
                         hotspot.polygons[0]
                       )
-                    )
-                  }
-                  role="button"
-                  tabIndex={0}
-                  aria-label={
-                    buildingInfo
-                      ? `Open ${buildingInfo.name}`
-                      : `Open ${hotspot.buildingId}`
-                  }
-                >
-                  {hotspot.polygons.map((polygon, index) => (
-                    <polygon
-                      key={`${hotspot.buildingId}-${index}`}
-                      points={polygonToPointString(polygon)}
-                      className={`stroke-[1.5] transition ${fillClass}`}
-                    />
-                  ))}
-                </g>
-              );
-            })}
-
-            {/* Panorama Hotspots - 360° tour entry points */}
-            {PANORAMA_HOTSPOTS.filter(
-              (pano) => pano.angleIndex === normalizedIndex
-            ).map((pano) => {
-              const isHovered = hoveredPanoId === pano.id;
-              const iconSize = 32;
-              const iconX = pano.x - iconSize / 2;
-              const iconY = pano.y - iconSize / 2;
-
-              return (
-                <g
-                  key={pano.id}
-                  className="cursor-pointer focus:outline-none focus-visible:outline-none"
-                  onClick={() => handlePanoramaActivate(pano)}
-                  onPointerDown={(event) => {
-                    event.stopPropagation();
-                  }}
-                  onPointerUp={(event) => {
-                    event.stopPropagation();
-                  }}
-                  onMouseEnter={() => setHoveredPanoId(pano.id)}
-                  onMouseLeave={() => setHoveredPanoId(null)}
-                  onFocus={() => setHoveredPanoId(pano.id)}
-                  onBlur={() => setHoveredPanoId(null)}
-                  onKeyDown={(event) =>
-                    handleKeyActivation(event, () =>
-                      handlePanoramaActivate(pano)
-                    )
-                  }
-                  role="button"
-                  tabIndex={0}
-                  aria-label={pano.label}
-                >
-                  {/* Background circle */}
-                  <circle
-                    cx={pano.x}
-                    cy={pano.y}
-                    r={isHovered ? 28 : 20}
-                    className={`transition-all ${
-                      isHovered
-                        ? "fill-emerald-400/90 stroke-emerald-200"
-                        : "fill-emerald-500/70 stroke-emerald-300/60"
-                    }`}
-                    strokeWidth="2"
-                  />
-                  {/* 360 icon using 360 icon - foreignObject allows HTML/React */}
-                  <foreignObject
-                    x={iconX}
-                    y={iconY}
-                    width={iconSize}
-                    height={iconSize}
-                    className="pointer-events-none"
+                    }
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                    }}
+                    onPointerUp={(event) => {
+                      event.stopPropagation();
+                    }}
+                    onMouseEnter={() => handleHoverStart(hotspot.buildingId)}
+                    onMouseLeave={() => handleHoverEnd(hotspot.buildingId)}
+                    onFocus={() => handleHoverStart(hotspot.buildingId)}
+                    onBlur={() => handleHoverEnd(hotspot.buildingId)}
+                    onKeyDown={(event) =>
+                      handleKeyActivation(event, () =>
+                        handleHotspotActivate(
+                          hotspot.buildingId,
+                          hotspot.polygons[0]
+                        )
+                      )
+                    }
+                    role="button"
+                    tabIndex={0}
+                    aria-label={
+                      buildingInfo
+                        ? `Open ${buildingInfo.name}`
+                        : `Open ${hotspot.buildingId}`
+                    }
                   >
-                    <div className="flex h-full w-full items-center justify-center">
-                      <img
-                        src="/360_icon.svg"
-                        alt="360° View"
-                        className={`transition-all ${
-                          isHovered ? "size-32" : "size-16"
-                        }`}
+                    {hotspot.polygons.map((polygon, index) => (
+                      <polygon
+                        key={`${hotspot.buildingId}-${index}`}
+                        points={polygonToPointString(polygon)}
+                        className={`stroke-[1.5] transition ${fillClass}`}
                       />
-                    </div>
-                  </foreignObject>
-                </g>
-              );
-            })}
-          </svg>
+                    ))}
+                  </g>
+                );
+              })}
+
+              {/* Panorama Hotspots - 360° tour entry points */}
+              {panoramaHotspots
+                .filter((pano) => pano.angleIndex === normalizedIndex)
+                .map((pano) => {
+                  const isHovered = hoveredPanoId === pano.id;
+                  const iconSize = 32;
+                  const iconX = pano.x - iconSize / 2;
+                  const iconY = pano.y - iconSize / 2;
+
+                  return (
+                    <g
+                      key={pano.id}
+                      className="cursor-pointer focus:outline-none focus-visible:outline-none"
+                      onClick={() =>
+                        handlePanoramaActivate(
+                          pano.tourPointId,
+                          pano.panoramicImage
+                        )
+                      }
+                      onPointerDown={(event) => {
+                        event.stopPropagation();
+                      }}
+                      onPointerUp={(event) => {
+                        event.stopPropagation();
+                      }}
+                      onMouseEnter={() => setHoveredPanoId(pano.id)}
+                      onMouseLeave={() => setHoveredPanoId(null)}
+                      onFocus={() => setHoveredPanoId(pano.id)}
+                      onBlur={() => setHoveredPanoId(null)}
+                      onKeyDown={(event) =>
+                        handleKeyActivation(event, () =>
+                          handlePanoramaActivate(
+                            pano.tourPointId,
+                            pano.panoramicImage
+                          )
+                        )
+                      }
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${pano.name} 360° View`}
+                    >
+                      {/* Background circle */}
+                      <circle
+                        cx={pano.x}
+                        cy={pano.y}
+                        r={isHovered ? 28 : 20}
+                        className={`transition-all ${
+                          isHovered
+                            ? "fill-emerald-400/90 stroke-emerald-200"
+                            : "fill-emerald-500/70 stroke-emerald-300/60"
+                        }`}
+                        strokeWidth="2"
+                      />
+                      {/* 360 icon using 360 icon - foreignObject allows HTML/React */}
+                      <foreignObject
+                        x={iconX}
+                        y={iconY}
+                        width={iconSize}
+                        height={iconSize}
+                        className="pointer-events-none"
+                      >
+                        <div className="flex h-full w-full items-center justify-center">
+                          <img
+                            src="/360_icon.svg"
+                            alt="360° View"
+                            className={`transition-all ${
+                              isHovered ? "size-32" : "size-16"
+                            }`}
+                          />
+                        </div>
+                      </foreignObject>
+                    </g>
+                  );
+                })}
+            </svg>
+          )}
+
+          {/* Tooltip - inside transform container so it moves with zoom/pan */}
+          <AnimatePresence>
+            {activeStatusBuilding &&
+            tooltipPosition &&
+            !sequenceState.playing ? (
+              <motion.div
+                key={activeStatusBuilding.id}
+                className="pointer-events-none absolute max-w-xs -translate-x-1/2 -translate-y-full"
+                style={{
+                  left: tooltipPosition.left,
+                  top: tooltipPosition.top,
+                  marginTop: "-1rem", // Add some spacing above the center
+                }}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 12 }}
+              >
+                <Tooltip
+                  title={activeStatusBuilding.id}
+                  content={activeStatusBuilding.name}
+                  footer={`${activeStatusBuilding.summary.totalFloors} floors · ${activeStatusBuilding.summary.availableUnits} units available`}
+                />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </motion.div>
 
         {/* Gradient overlay - not zoomed */}
@@ -1008,27 +1202,6 @@ export const MasterPlanView = () => {
                 className="mt-4"
               />
             </div>
-          </div>
-
-          <div className="pointer-events-none relative flex-1">
-            <AnimatePresence>
-              {activeStatusBuilding && tooltipPosition ? (
-                <motion.div
-                  key={activeStatusBuilding.id}
-                  className="pointer-events-none absolute max-w-xs -translate-x-1/2 -translate-y-[140%]"
-                  style={tooltipPosition}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 12 }}
-                >
-                  <Tooltip
-                    title={activeStatusBuilding.id}
-                    content={activeStatusBuilding.name}
-                    footer={`${activeStatusBuilding.summary.totalFloors} floors · ${activeStatusBuilding.summary.availableUnits} units available`}
-                  />
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
           </div>
 
           <div className="pointer-events-none flex w-full items-center justify-center">

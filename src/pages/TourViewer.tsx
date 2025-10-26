@@ -1,13 +1,15 @@
-import "photo-sphere-viewer/dist/photo-sphere-viewer.css";
+import "@photo-sphere-viewer/core/index.css";
+import "@photo-sphere-viewer/markers-plugin/index.css";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
+import { Viewer } from "@photo-sphere-viewer/core";
+import { MarkersPlugin } from "@photo-sphere-viewer/markers-plugin";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useTransitionContext } from "../contexts/TransitionContext";
 import { loadTour } from "../data/loaders";
-import type { PanoScene, Tour } from "../data/types";
+import type { PanoScene, Tour, PanoLink } from "../data/types";
 import { useNavigationStore } from "../stores/navigationStore";
 import { prefersReducedMotion } from "../utils/accessibility";
 
@@ -31,6 +33,45 @@ const findScene = (tour: Tour | null, sceneId: string | null) => {
   return tour.scenes.find((scene) => scene.id === sceneId) ?? null;
 };
 
+/**
+ * Gets the panorama image URL from a scene, supporting both old and new formats
+ */
+const getSceneImageUrl = (scene: PanoScene): string | undefined => {
+  // New format: panoramaImage object
+  if (scene.panoramaImage?.url) {
+    return scene.panoramaImage.url;
+  }
+  // Old format: image string
+  return scene.image;
+};
+
+/**
+ * Gets the scene hotspots/links, supporting both old and new formats
+ */
+const getSceneHotspots = (
+  scene: PanoScene
+): Array<{ id: string; targetSceneId: string; yaw: number; pitch: number }> => {
+  // New format: hotspots array
+  if (scene.hotspots && scene.hotspots.length > 0) {
+    return scene.hotspots.map((hotspot) => ({
+      id: hotspot.id,
+      targetSceneId: hotspot.targetSceneId,
+      yaw: hotspot.position.yaw,
+      pitch: hotspot.position.pitch,
+    }));
+  }
+  // Old format: links array with x, y coordinates
+  if (scene.links && scene.links.length > 0) {
+    return scene.links.map((link) => ({
+      id: link.target,
+      targetSceneId: link.target,
+      yaw: (link.x * Math.PI) / 180,
+      pitch: (link.y * Math.PI) / 180,
+    }));
+  }
+  return [];
+};
+
 export const TourViewer = () => {
   const { tourId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,8 +79,23 @@ export const TourViewer = () => {
   const { tourBackLocation, clearTourBackLocation } = useNavigationStore();
   const [state, setState] = useState<FetchState<Tour>>(initialState);
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
-  const [isFading, setIsFading] = useState(false);
-  const [panoLoading, setPanoLoading] = useState(true);
+  const [showSceneList, setShowSceneList] = useState(false);
+  const [allPanoramasPreloaded, setAllPanoramasPreloaded] = useState(false);
+  const [viewerReady, setViewerReady] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Store target camera orientation for scene transitions
+  const [targetOrientation, setTargetOrientation] = useState<{
+    yaw: number;
+    pitch: number;
+    zoom: number;
+  } | null>(null);
+
+  // Viewer refs for v5 direct integration
+  const viewerRef = useRef<Viewer | null>(null);
+  const markersPluginRef = useRef<MarkersPlugin | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const preloadedImagesRef = useRef<Map<string, boolean>>(new Map());
 
   useEffect(() => {
     if (!tourId) {
@@ -56,7 +112,13 @@ export const TourViewer = () => {
 
         if (!cancelled) {
           setState({ status: "success", data, error: null });
-          setCurrentSceneId(data.startSceneId ?? data.scenes[0]?.id ?? null);
+          // Support both old (startSceneId) and new (startingSceneId) formats
+          const startScene =
+            data.startingSceneId ??
+            data.startSceneId ??
+            data.scenes[0]?.id ??
+            null;
+          setCurrentSceneId(startScene);
         }
       } catch (error) {
         if (!cancelled) {
@@ -78,6 +140,61 @@ export const TourViewer = () => {
       cancelled = true;
     };
   }, [tourId]);
+
+  // Preload all panorama images upfront
+  useEffect(() => {
+    if (state.status !== "success" || !state.data) {
+      return;
+    }
+
+    const tourData = state.data;
+
+    const preloadAllImages = async () => {
+      console.log("TourViewer: Starting to preload all panorama images...");
+      const imagePromises = tourData.scenes.map((scene) => {
+        return new Promise<void>((resolve, reject) => {
+          const imageUrl = getSceneImageUrl(scene);
+          if (!imageUrl) {
+            console.warn(`TourViewer: No image URL for scene ${scene.id}`);
+            resolve();
+            return;
+          }
+
+          // Check if already preloaded
+          if (preloadedImagesRef.current.get(scene.id)) {
+            resolve();
+            return;
+          }
+
+          const img = new Image();
+          img.onload = () => {
+            preloadedImagesRef.current.set(scene.id, true);
+            console.log(`TourViewer: Preloaded image for scene ${scene.id}`);
+            resolve();
+          };
+          img.onerror = () => {
+            console.error(
+              `TourViewer: Failed to preload image for scene ${scene.id}`
+            );
+            reject(new Error(`Failed to load ${scene.id}`));
+          };
+          img.src = imageUrl;
+        });
+      });
+
+      try {
+        await Promise.all(imagePromises);
+        console.log("TourViewer: All panorama images preloaded successfully");
+        setAllPanoramasPreloaded(true);
+      } catch (error) {
+        console.error("TourViewer: Error preloading images:", error);
+        // Continue anyway, some images might have loaded
+        setAllPanoramasPreloaded(true);
+      }
+    };
+
+    preloadAllImages();
+  }, [state.status, state.data]);
 
   useEffect(() => {
     if (state.status !== "success" || !state.data) {
@@ -114,23 +231,372 @@ export const TourViewer = () => {
     [state.data, currentSceneId]
   );
 
+  // Initialize Photo Sphere Viewer once when all panoramas are preloaded
   useEffect(() => {
-    if (!currentScene || !state.data) {
+    if (!containerRef.current || !currentScene || !allPanoramasPreloaded) {
       return;
     }
 
-    currentScene.links?.forEach((link) => {
-      const scene = findScene(state.data, link.target);
-      if (scene) {
-        const image = new Image();
-        image.src = scene.image;
+    // Only create viewer if it doesn't exist
+    if (viewerRef.current) {
+      return;
+    }
+
+    const container = containerRef.current;
+
+    try {
+      const sceneImageUrl = getSceneImageUrl(currentScene);
+      if (!sceneImageUrl) {
+        throw new Error("No image URL found for scene");
       }
-    });
-  }, [currentScene, state.data]);
+
+      console.log("TourViewer: Creating viewer instance for first time");
+      console.log("TourViewer: Initial scene image URL:", sceneImageUrl);
+      console.log(
+        "TourViewer: Full URL will be:",
+        window.location.origin + sceneImageUrl
+      );
+
+      // Create new viewer instance
+      const viewer = new Viewer({
+        container: container,
+        panorama: sceneImageUrl,
+        defaultYaw:
+          targetOrientation?.yaw ?? currentScene.initialView?.yaw ?? 0,
+        defaultPitch:
+          targetOrientation?.pitch ?? currentScene.initialView?.pitch ?? 0,
+        defaultZoomLvl:
+          targetOrientation?.zoom ??
+          (currentScene.initialView?.fov
+            ? Math.max(
+                0,
+                Math.min(100, 100 - (currentScene.initialView.fov - 50) / 0.7)
+              )
+            : 50),
+        navbar: false,
+        plugins: [
+          [
+            MarkersPlugin,
+            {
+              markers: [],
+            },
+          ],
+        ],
+      });
+
+      viewerRef.current = viewer;
+
+      // Clear target orientation after using it
+      if (targetOrientation) {
+        setTargetOrientation(null);
+      }
+
+      // Get markers plugin
+      const markersPlugin = viewer.getPlugin(MarkersPlugin) as MarkersPlugin;
+      markersPluginRef.current = markersPlugin;
+
+      // Define marker click handler
+      const handleMarkerClick = (e: any) => {
+        console.log("TourViewer: Marker clicked:", e.marker);
+        const hotspot = e.marker.data as {
+          id: string;
+          targetSceneId: string;
+          yaw: number;
+          pitch: number;
+        };
+        if (hotspot && hotspot.targetSceneId) {
+          // Hide the clicked marker immediately
+          if (markersPluginRef.current) {
+            markersPluginRef.current.removeMarker(e.marker.id);
+          }
+
+          // Capture current camera orientation before transitioning
+          if (viewerRef.current) {
+            const position = viewerRef.current.getPosition();
+            const zoomLevel = viewerRef.current.getZoomLevel();
+
+            console.log("TourViewer: Capturing camera orientation:", {
+              yaw: position.yaw,
+              pitch: position.pitch,
+              zoom: zoomLevel,
+            });
+
+            setTargetOrientation({
+              yaw: position.yaw,
+              pitch: position.pitch,
+              zoom: zoomLevel,
+            });
+          }
+
+          setCurrentSceneId(hotspot.targetSceneId);
+        }
+      };
+
+      // Handle viewer ready - add initial markers
+      viewer.addEventListener("ready", () => {
+        console.log("TourViewer: Viewer is ready, adding initial markers");
+
+        const hotspots = getSceneHotspots(currentScene);
+        console.log(
+          `TourViewer: Initial scene "${currentScene.id}" has ${hotspots.length} hotspots`
+        );
+
+        if (hotspots.length > 0 && markersPlugin) {
+          const markers = hotspots.map((hotspot) => ({
+            id: hotspot.id,
+            position: {
+              yaw: hotspot.yaw,
+              pitch: hotspot.pitch,
+            },
+            html: `<div class="hotspot-marker-3d" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+              <svg width="80" height="80" viewBox="0 0 80 80" style="filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));">
+                <defs>
+                  <radialGradient id="diskGradient-${hotspot.id}" cx="40%" cy="30%">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0.9);stop-opacity:1" />
+                    <stop offset="40%" style="stop-color:rgba(16,185,129,1);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(5,150,105,0.8);stop-opacity:1" />
+                  </radialGradient>
+                  <radialGradient id="ringGradient-${hotspot.id}" cx="50%" cy="50%">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(16,185,129,0.6);stop-opacity:1" />
+                  </radialGradient>
+                </defs>
+                
+                <!-- Outer glow ring (ellipse for 3D effect) -->
+                <ellipse cx="40" cy="45" rx="36" ry="18" fill="url(#ringGradient-${hotspot.id})" opacity="0.4">
+                  <animate attributeName="opacity" values="0.4;0.7;0.4" dur="2s" repeatCount="indefinite"/>
+                </ellipse>
+                
+                <!-- Main disk (ellipse for 3D floor effect) -->
+                <ellipse cx="40" cy="42" rx="28" ry="14" fill="url(#diskGradient-${hotspot.id})" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>
+                
+                <!-- Arrow indicator pointing up/forward -->
+                <g transform="translate(40, 42)">
+                  <path d="M 0,-8 L -4,-2 L -1.5,-2 L -1.5,4 L 1.5,4 L 1.5,-2 L 4,-2 Z" fill="white" opacity="0.95"/>
+                </g>
+              </svg>
+            </div>
+            <style>
+              .hotspot-marker-3d:hover {
+                transform: scale(1.2);
+              }
+              .hotspot-marker-3d:hover svg {
+                filter: drop-shadow(0 6px 16px rgba(16,185,129,0.6));
+              }
+            </style>`,
+            tooltip:
+              findScene(state.data, hotspot.targetSceneId)?.name ||
+              hotspot.targetSceneId.replace(/-/g, " "),
+            data: hotspot,
+          }));
+
+          markersPlugin.setMarkers(markers);
+          console.log(`TourViewer: Added ${markers.length} initial markers`);
+
+          // Add event listener for initial markers
+          markersPlugin.addEventListener("select-marker", handleMarkerClick);
+        }
+
+        setViewerReady(true);
+      });
+    } catch (error) {
+      console.error("Failed to initialize viewer:", error);
+      setViewerReady(true); // Set ready even on error to hide loading
+    }
+
+    // Cleanup only on unmount
+    return () => {
+      if (viewerRef.current) {
+        viewerRef.current.destroy();
+        viewerRef.current = null;
+        markersPluginRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allPanoramasPreloaded]);
+
+  // Update panorama and markers when scene changes (without recreating viewer)
+  useEffect(() => {
+    if (
+      !viewerRef.current ||
+      !currentScene ||
+      !allPanoramasPreloaded ||
+      !viewerReady
+    ) {
+      return;
+    }
+
+    const viewer = viewerRef.current;
+    const markersPlugin = markersPluginRef.current;
+
+    const sceneImageUrl = getSceneImageUrl(currentScene);
+    if (!sceneImageUrl) {
+      console.error("No image URL found for scene");
+      return;
+    }
+
+    // Check if this is still the initial scene (don't update on first render)
+    const currentPanorama = viewer.config.panorama;
+    if (currentPanorama === sceneImageUrl) {
+      console.log("TourViewer: Skipping update, already on this scene");
+      return;
+    }
+
+    console.log(`TourViewer: Switching to scene "${currentScene.id}"`);
+
+    // Apply target orientation if available, otherwise use scene's initial view
+    const newYaw = targetOrientation?.yaw ?? currentScene.initialView?.yaw ?? 0;
+    const newPitch =
+      targetOrientation?.pitch ?? currentScene.initialView?.pitch ?? 0;
+    const newZoom =
+      targetOrientation?.zoom ??
+      (currentScene.initialView?.fov
+        ? Math.max(
+            0,
+            Math.min(100, 100 - (currentScene.initialView.fov - 50) / 0.7)
+          )
+        : 50);
+
+    // Define marker click handler
+    const handleMarkerClick = (e: any) => {
+      console.log("TourViewer: Marker clicked:", e.marker);
+      const hotspot = e.marker.data as {
+        id: string;
+        targetSceneId: string;
+        yaw: number;
+        pitch: number;
+      };
+      if (hotspot && hotspot.targetSceneId) {
+        // Hide the clicked marker immediately
+        if (markersPluginRef.current) {
+          markersPluginRef.current.removeMarker(e.marker.id);
+        }
+
+        // Capture current camera orientation before transitioning
+        if (viewerRef.current) {
+          const position = viewerRef.current.getPosition();
+          const zoomLevel = viewerRef.current.getZoomLevel();
+
+          console.log("TourViewer: Capturing camera orientation:", {
+            yaw: position.yaw,
+            pitch: position.pitch,
+            zoom: zoomLevel,
+          });
+
+          setTargetOrientation({
+            yaw: position.yaw,
+            pitch: position.pitch,
+            zoom: zoomLevel,
+          });
+        }
+
+        setCurrentSceneId(hotspot.targetSceneId);
+      }
+    };
+
+    // Set transitioning state
+    setIsTransitioning(true);
+
+    // Switch panorama with crossfade (no zoom animations)
+    viewer
+      .setPanorama(sceneImageUrl, {
+        position: { yaw: newYaw, pitch: newPitch },
+        zoom: newZoom,
+        transition: true, // Enable smooth crossfade (default 1500ms)
+        showLoader: false, // Don't show loader since images are preloaded
+      })
+      .then(() => {
+        console.log(`TourViewer: Panorama switched to "${currentScene.id}"`);
+
+        // Clear transitioning state
+        setIsTransitioning(false);
+
+        // Clear target orientation after using it
+        if (targetOrientation) {
+          setTargetOrientation(null);
+        }
+
+        // Update markers for new scene
+        if (markersPlugin) {
+          const hotspots = getSceneHotspots(currentScene);
+          console.log(
+            `TourViewer: Scene "${currentScene.id}" has ${hotspots.length} hotspots`
+          );
+
+          // Remove old event listener
+          markersPlugin.removeEventListener("select-marker", handleMarkerClick);
+
+          if (hotspots.length > 0) {
+            const markers = hotspots.map((hotspot) => ({
+              id: hotspot.id,
+              position: {
+                yaw: hotspot.yaw,
+                pitch: hotspot.pitch,
+              },
+              html: `<div class="hotspot-marker-3d" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+              <svg width="80" height="80" viewBox="0 0 80 80" style="filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));">
+                <defs>
+                  <radialGradient id="diskGradient-${hotspot.id}" cx="40%" cy="30%">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0.9);stop-opacity:1" />
+                    <stop offset="40%" style="stop-color:rgba(16,185,129,1);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(5,150,105,0.8);stop-opacity:1" />
+                  </radialGradient>
+                  <radialGradient id="ringGradient-${hotspot.id}" cx="50%" cy="50%">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(16,185,129,0.6);stop-opacity:1" />
+                  </radialGradient>
+                </defs>
+                
+                <!-- Outer glow ring (ellipse for 3D effect) -->
+                <ellipse cx="40" cy="45" rx="36" ry="18" fill="url(#ringGradient-${hotspot.id})" opacity="0.4">
+                  <animate attributeName="opacity" values="0.4;0.7;0.4" dur="2s" repeatCount="indefinite"/>
+                </ellipse>
+                
+                <!-- Main disk (ellipse for 3D floor effect) -->
+                <ellipse cx="40" cy="42" rx="28" ry="14" fill="url(#diskGradient-${hotspot.id})" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>
+                
+                <!-- Arrow indicator pointing up/forward -->
+                <g transform="translate(40, 42)">
+                  <path d="M 0,-8 L -4,-2 L -1.5,-2 L -1.5,4 L 1.5,4 L 1.5,-2 L 4,-2 Z" fill="white" opacity="0.95"/>
+                </g>
+              </svg>
+            </div>
+            <style>
+              .hotspot-marker-3d:hover {
+                transform: scale(1.2);
+              }
+              .hotspot-marker-3d:hover svg {
+                filter: drop-shadow(0 6px 16px rgba(16,185,129,0.6));
+              }
+            </style>`,
+              tooltip:
+                findScene(state.data, hotspot.targetSceneId)?.name ||
+                hotspot.targetSceneId.replace(/-/g, " "),
+              data: hotspot,
+            }));
+
+            markersPlugin.setMarkers(markers);
+            console.log(`TourViewer: Updated ${markers.length} markers`);
+
+            // Add event listener after markers are set
+            markersPlugin.addEventListener("select-marker", handleMarkerClick);
+          } else {
+            markersPlugin.clearMarkers();
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to switch panorama:", error);
+        setIsTransitioning(false); // Clear transitioning state on error
+      });
+  }, [currentScene, state.data, allPanoramasPreloaded, viewerReady]);
 
   const backHref = useMemo(() => {
     // First priority: Use stored back location from Zustand
     console.log("DEBUG: tourBackLocation from Zustand:", tourBackLocation);
+    console.log("DEBUG: state.data:", state.data);
+    console.log("DEBUG: state.status:", state.status);
+
     if (tourBackLocation) {
       console.log("DEBUG: Using Zustand back location:", tourBackLocation);
       return tourBackLocation;
@@ -140,6 +606,12 @@ export const TourViewer = () => {
     // Check if this is a street-view tour (non-unit tour)
     if (state.data && state.data.modelId === null) {
       console.log("DEBUG: Street-view tour, going to masterplan");
+      // Check if we have a backAngle parameter
+      const backAngle = searchParams.get("backAngle");
+      if (backAngle) {
+        console.log("DEBUG: Using backAngle parameter:", backAngle);
+        return `/masterplan?angle=${backAngle}`;
+      }
       return "/masterplan";
     }
 
@@ -242,15 +714,28 @@ export const TourViewer = () => {
       return;
     }
 
-    setIsFading(true);
-    setPanoLoading(true);
-    window.setTimeout(() => {
-      setCurrentSceneId(nextSceneId);
-      const params = new URLSearchParams(searchParams);
-      params.set("scene", nextSceneId);
-      setSearchParams(params, { replace: true });
-      setIsFading(false);
-    }, 250);
+    // Capture current camera orientation before transitioning
+    if (viewerRef.current) {
+      const position = viewerRef.current.getPosition();
+      const zoomLevel = viewerRef.current.getZoomLevel();
+
+      console.log("TourViewer: Capturing camera orientation for scene list:", {
+        yaw: position.yaw,
+        pitch: position.pitch,
+        zoom: zoomLevel,
+      });
+
+      setTargetOrientation({
+        yaw: position.yaw,
+        pitch: position.pitch,
+        zoom: zoomLevel,
+      });
+    }
+
+    setCurrentSceneId(nextSceneId);
+    const params = new URLSearchParams(searchParams);
+    params.set("scene", nextSceneId);
+    setSearchParams(params, { replace: true });
   };
 
   const handleSceneCardSelect = (scene: PanoScene) => {
@@ -258,7 +743,6 @@ export const TourViewer = () => {
   };
 
   const navigate = useNavigate();
-  const [showSceneList, setShowSceneList] = useState(false);
 
   const handleBack = () => {
     clearTourBackLocation(); // Clear the stored location after using it
@@ -296,50 +780,43 @@ export const TourViewer = () => {
       {/* Full-screen Panorama Viewer */}
       <div className="absolute inset-0">
         {currentScene ? (
-          <motion.div
-            key={currentScene.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isFading ? 0 : 1 }}
-            transition={{ duration: 0.25 }}
-            className="h-full w-full"
-          >
-            <ReactPhotoSphereViewer
-              src={currentScene.image}
-              height="100vh"
-              width="100%"
-              littlePlanet={false}
-              pitch={currentScene.initialView?.pitch}
-              yaw={currentScene.initialView?.yaw}
-              fov={currentScene.initialView?.fov}
-              onReady={() => setPanoLoading(false)}
-            />
-          </motion.div>
+          <div className="h-full w-full">
+            <div ref={containerRef} className="h-full w-full" />
+          </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-bg-base">
             <div className="flex flex-col items-center gap-md">
               <div className="h-16 w-16 animate-spin rounded-full border-4 border-border border-t-primary"></div>
               <span className="text-sm uppercase tracking-[0.35em] text-text-tertiary">
-                Initializing tour...
+                {allPanoramasPreloaded
+                  ? "Initializing tour..."
+                  : "Preloading panoramas..."}
               </span>
+              {!allPanoramasPreloaded && state.data && (
+                <span className="text-xs text-text-tertiary">
+                  Loading {state.data.scenes.length} scenes for smooth
+                  navigation
+                </span>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Loading Overlay */}
+      {/* Transition Indicator - Subtle overlay during scene transitions */}
       <AnimatePresence>
-        {panoLoading && (
+        {isTransitioning && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-40 flex items-center justify-center bg-bg-overlay backdrop-blur-sm"
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 z-20 pointer-events-none"
           >
-            <div className="flex flex-col items-center gap-md">
-              <div className="h-16 w-16 animate-spin rounded-full border-4 border-border border-t-primary"></div>
-              <span className="text-sm uppercase tracking-[0.35em] text-text-tertiary">
-                Loading panorama...
-              </span>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <div className="flex flex-col items-center gap-sm">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+              </div>
             </div>
           </motion.div>
         )}
@@ -432,14 +909,17 @@ export const TourViewer = () => {
                   Scene
                 </span>
                 <span className="text-lg font-bold text-text-primary capitalize">
-                  {currentScene.id.replace(/-/g, " ")}
+                  {currentScene.name || currentScene.id.replace(/-/g, " ")}
                 </span>
-                {currentScene.links && currentScene.links.length > 0 && (
-                  <span className="text-xs text-text-tertiary">
-                    {currentScene.links.length} hotspot
-                    {currentScene.links.length !== 1 ? "s" : ""} available
-                  </span>
-                )}
+                {(() => {
+                  const hotspotCount = getSceneHotspots(currentScene).length;
+                  return hotspotCount > 0 ? (
+                    <span className="text-xs text-text-tertiary">
+                      {hotspotCount} hotspot
+                      {hotspotCount !== 1 ? "s" : ""} available
+                    </span>
+                  ) : null;
+                })()}
               </div>
             </div>
           </motion.div>
@@ -513,32 +993,35 @@ export const TourViewer = () => {
                 </div>
                 <div className="overflow-y-auto max-h-[calc(60vh-4rem)] p-sm">
                   <div className="flex flex-col gap-sm">
-                    {state.data?.scenes.map((scene) => (
-                      <button
-                        key={scene.id}
-                        type="button"
-                        onClick={() => {
-                          handleSceneCardSelect(scene);
-                          setShowSceneList(false);
-                        }}
-                        className={`flex flex-col gap-sm rounded-card border px-md py-sm text-left transition-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                          scene.id === currentSceneId
-                            ? "border-primary/70 bg-primary/20"
-                            : "border-border-muted bg-surface-base/60 hover:border-primary/50 hover:bg-primary/10"
-                        }`}
-                      >
-                        <span className="text-sm font-semibold capitalize text-text-primary">
-                          {scene.id.replace(/-/g, " ")}
-                        </span>
-                        <span className="text-xs text-text-tertiary">
-                          {scene.links?.length
-                            ? `${scene.links.length} hotspot${
-                                scene.links.length !== 1 ? "s" : ""
-                              }`
-                            : "No hotspots"}
-                        </span>
-                      </button>
-                    ))}
+                    {state.data?.scenes.map((scene) => {
+                      const hotspotCount = getSceneHotspots(scene).length;
+                      return (
+                        <button
+                          key={scene.id}
+                          type="button"
+                          onClick={() => {
+                            handleSceneCardSelect(scene);
+                            setShowSceneList(false);
+                          }}
+                          className={`flex flex-col gap-sm rounded-card border px-md py-sm text-left transition-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                            scene.id === currentSceneId
+                              ? "border-primary/70 bg-primary/20"
+                              : "border-border-muted bg-surface-base/60 hover:border-primary/50 hover:bg-primary/10"
+                          }`}
+                        >
+                          <span className="text-sm font-semibold capitalize text-text-primary">
+                            {scene.name || scene.id.replace(/-/g, " ")}
+                          </span>
+                          <span className="text-xs text-text-tertiary">
+                            {hotspotCount
+                              ? `${hotspotCount} hotspot${
+                                  hotspotCount !== 1 ? "s" : ""
+                                }`
+                              : "No hotspots"}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </motion.div>

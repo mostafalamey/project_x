@@ -1,48 +1,17 @@
 {
     "modelId": null,
-    "startSceneId": "entrance",
+    "startSceneId": "fb5e7a65-0b3d-4bc2-afee-54b24145c1ac",
     "scenes": [
         {
-            "id": "entrance",
-            "image": "/data/tours/street-view/entrance.jpg",
-            "links": [
-                {
-                    "target": "plaza",
-                    "x": 2048,
-                    "y": 1024
-                },
-                {
-                    "target": "parking",
-                    "x": 1024,
-                    "y": 1024
-                }
-            ],
+            "id": "fb5e7a65-0b3d-4bc2-afee-54b24145c1ac",
+            "image": "/data/tours/street-view/fb5e7a65-0b3d-4bc2-afee-54b24145c1ac.jpeg",
+            "links": [],
             "initialView": {
                 "yaw": 0,
                 "pitch": 0,
                 "fov": 90
-            }
-        },
-        {
-            "id": "plaza",
-            "image": "/data/tours/street-view/plaza.jpg",
-            "links": [
-                {
-                    "target": "entrance",
-                    "x": 3072,
-                    "y": 1024
-                },
-                {
-                    "target": "garden",
-                    "x": 1536,
-                    "y": 1024
-                }
-            ],
-            "initialView": {
-                "yaw": 90,
-                "pitch": 0,
-                "fov": 90
-            }
+            },
+            "name": "Plaza"
         }
     ]
 }

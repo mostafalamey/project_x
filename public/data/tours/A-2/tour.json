@@ -1,0 +1,52 @@
+{
+  "tourId": "tour-1761409209691",
+  "modelId": "A-2",
+  "projectId": "default",
+  "startingSceneId": "scene-1761421827865",
+  "scenes": [
+    {
+      "id": "scene-1761421827865",
+      "name": "Living",
+      "panoramaImage": {
+        "url": "/data/tours/A-2/scene-scene-1761421827865.jpeg",
+        "filename": "living-room.jpg"
+      },
+      "hotspots": [
+        {
+          "id": "hotspot-1761421879680",
+          "targetSceneId": "scene-1761421867495",
+          "position": {
+            "yaw": 1.1881816256514446,
+            "pitch": -0.3555186329676243
+          },
+          "icon": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "scene-1761421867495",
+      "name": "Corridor",
+      "panoramaImage": {
+        "url": "/data/tours/A-2/scene-scene-1761421867495.jpeg",
+        "filename": "corridor.jpg"
+      },
+      "hotspots": [
+        {
+          "id": "hotspot-1761421893570",
+          "targetSceneId": "scene-1761421827865",
+          "position": {
+            "yaw": 3.9563028247607845,
+            "pitch": -0.31492608159697877
+          },
+          "icon": "arrow"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "exportDate": "2025-10-25T20:14:06.869Z",
+    "version": "1.0.0",
+    "sceneCount": 2,
+    "totalHotspots": 2
+  }
+}

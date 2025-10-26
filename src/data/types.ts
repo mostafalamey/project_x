@@ -13,17 +13,24 @@ export type MapData = {
 export type Landmark = {
   id: string;
   name: string;
+  category?: string;
   description?: string;
   image?: string;
-  distanceM?: number;
+  distanceK?: number;
   timeMin?: number;
   coords: Point2D | Polygon;
+  path?: Point2D[] | Polygon;
+  pathStyle?: {
+    stroke?: string;
+    strokeWidth?: number;
+  };
   type: "complex" | "poi";
 };
 
 export type MasterPlan = {
   angles: MasterPlanAngle[];
   buildings: MasterPlanBuilding[];
+  tourPoints?: MasterPlanTourPoint[];
 };
 
 export type MasterPlanAngle = {
@@ -48,8 +55,24 @@ export type MasterPlanBuilding = {
   id: string;
   name: string;
   summary: {
-    totalFloors: number;
-    availableUnits: number;
+    totalFloors?: number;
+    availableUnits?: number;
+  };
+};
+
+export type MasterPlanTourPoint = {
+  id: string;
+  name: string;
+  positions: {
+    angleIndex: number;
+    x: number;
+    y: number;
+  }[];
+  panoramicImage: string;
+  initialView: {
+    yaw: number;
+    pitch: number;
+    fov: number;
   };
 };
 
@@ -63,7 +86,6 @@ export type Building = {
 export type BuildingFloor = {
   id: string;
   number: number;
-  planImage: string;
   elevationPolygons?: Polygon[];
 };
 
@@ -87,16 +109,24 @@ export type Model = {
 
 export type Floor = {
   id: string;
+  name: string;
+  floorNumber: number;
   buildingId: string;
-  number: number;
-  planImage: string;
+  buildingName: string;
+  floorPlanImage: string;
   units: UnitHotspot[];
   elevationPolygons?: Polygon[];
 };
 
 export type UnitHotspot = {
-  unitId: string;
-  shape: Polygon;
+  unitNumber: string;
+  modelId: string;
+  modelTitle: string;
+  availability: "available" | "reserved" | "sold";
+  pricing: {
+    price: number;
+  };
+  polygon: Polygon;
 };
 
 export type Unit = {
@@ -114,10 +144,28 @@ export type PanoLink = {
   y: number;
 };
 
+export type PanoHotspot = {
+  id: string;
+  targetSceneId: string;
+  position: {
+    yaw: number;
+    pitch: number;
+  };
+  icon: string;
+};
+
+export type PanoramaImage = {
+  url: string;
+  filename: string;
+};
+
 export type PanoScene = {
   id: string;
-  image: string;
-  links?: PanoLink[];
+  image?: string; // For old format
+  panoramaImage?: PanoramaImage; // For new format
+  name?: string;
+  links?: PanoLink[]; // For old format
+  hotspots?: PanoHotspot[]; // For new format
   initialView?: {
     yaw?: number;
     pitch?: number;
@@ -125,8 +173,19 @@ export type PanoScene = {
   };
 };
 
+export type TourMetadata = {
+  exportDate: string;
+  version: string;
+  sceneCount: number;
+  totalHotspots: number;
+};
+
 export type Tour = {
+  tourId?: string; // New format
   modelId?: string | null;
-  startSceneId?: string;
+  projectId?: string; // New format
+  startSceneId?: string; // Old format
+  startingSceneId?: string; // New format
   scenes: PanoScene[];
+  metadata?: TourMetadata; // New format
 };

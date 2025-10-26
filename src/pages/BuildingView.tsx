@@ -23,7 +23,7 @@ import { usePointerPan } from "../hooks/usePointerPan";
 import { useZoomPan } from "../hooks/useZoomPan";
 import { prefersReducedMotion } from "../utils/accessibility";
 
-const VIEWBOX = { width: 960, height: 1440 };
+const VIEWBOX = { width: 1920, height: 1080 };
 const ZOOM_DELAY_MS = 360;
 
 type FetchState<T> = {
@@ -518,6 +518,7 @@ export const BuildingView = () => {
           <svg
             className="pointer-events-auto absolute inset-0 h-full w-full"
             viewBox={`0 0 ${VIEWBOX.width} ${VIEWBOX.height}`}
+            preserveAspectRatio="xMidYMid slice"
             role="presentation"
             onMouseLeave={() => setHoveredFloorId(null)}
           >

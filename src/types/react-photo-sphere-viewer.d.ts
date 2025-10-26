@@ -9,7 +9,9 @@ declare module "react-photo-sphere-viewer" {
     pitch?: number;
     yaw?: number;
     fov?: number;
-    onReady?: () => void;
+    onReady?: (instance: any) => void;
+    onClick?: (data: { yaw: number; pitch: number }) => void;
+    plugins?: any[];
   }
 
   export const ReactPhotoSphereViewer: ComponentType<ReactPhotoSphereViewerProps>;

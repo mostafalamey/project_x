@@ -1,0 +1,102 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://aurora-complex.com/schemas/admin/project-config.json",
+    "title": "Project Configuration",
+    "description": "Top-level configuration for a real estate project in the admin dashboard",
+    "type": "object",
+    "required": [
+        "id",
+        "name",
+        "slug",
+        "developer",
+        "createdAt",
+        "updatedAt",
+        "version"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique project identifier"
+        },
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100,
+            "description": "Project display name"
+        },
+        "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "URL-friendly project identifier"
+        },
+        "developer": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "Developer company name"
+                },
+                "logo": {
+                    "type": "string",
+                    "description": "Base64-encoded logo or URL to logo image"
+                },
+                "contact": {
+                    "type": "object",
+                    "properties": {
+                        "email": {
+                            "type": "string",
+                            "format": "email"
+                        },
+                        "phone": {
+                            "type": "string"
+                        },
+                        "website": {
+                            "type": "string",
+                            "format": "uri"
+                        }
+                    }
+                }
+            }
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "completionDate": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "totalUnits": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp"
+        },
+        "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp"
+        },
+        "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$",
+            "description": "Semantic version (e.g., 1.0.0)"
+        }
+    }
+}

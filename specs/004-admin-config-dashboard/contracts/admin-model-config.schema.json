@@ -1,0 +1,195 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://aurora-complex.com/schemas/admin/model-config.json",
+    "title": "Model Configuration",
+    "description": "Apartment model/floor plan configuration with media assets",
+    "type": "object",
+    "required": [
+        "id",
+        "projectId",
+        "title",
+        "description",
+        "specs",
+        "media",
+        "availability",
+        "displayOrder",
+        "createdAt",
+        "updatedAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "Unique model identifier (e.g., A-1, B-2)"
+        },
+        "projectId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to project"
+        },
+        "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+        },
+        "description": {
+            "type": "string"
+        },
+        "specs": {
+            "type": "object",
+            "required": [
+                "areaM2",
+                "bedrooms",
+                "bathrooms"
+            ],
+            "properties": {
+                "areaM2": {
+                    "type": "number",
+                    "minimum": 0.1
+                },
+                "bedrooms": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "bathrooms": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "media": {
+            "type": "object",
+            "required": [
+                "thumbnail"
+            ],
+            "properties": {
+                "thumbnail": {
+                    "$ref": "#/definitions/ImageRef"
+                },
+                "rotation360": {
+                    "$ref": "#/definitions/Rotation360Config"
+                },
+                "virtualTour": {
+                    "type": "string",
+                    "description": "Reference to tour ID"
+                }
+            }
+        },
+        "pricing": {
+            "type": "object",
+            "properties": {
+                "startingPrice": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "currency": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{3}$",
+                    "description": "ISO 4217 currency code"
+                }
+            }
+        },
+        "availability": {
+            "type": "string",
+            "enum": [
+                "available",
+                "sold-out",
+                "coming-soon"
+            ]
+        },
+        "displayOrder": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "definitions": {
+        "ImageRef": {
+            "type": "object",
+            "required": [
+                "id",
+                "filename",
+                "width",
+                "height",
+                "size",
+                "mimeType",
+                "uploadedAt"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "filename": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "width": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "height": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "size": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10485760,
+                    "description": "File size in bytes, max 10MB"
+                },
+                "mimeType": {
+                    "type": "string",
+                    "enum": [
+                        "image/jpeg",
+                        "image/png"
+                    ]
+                },
+                "uploadedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "Rotation360Config": {
+            "type": "object",
+            "required": [
+                "frameCount",
+                "filenamePattern",
+                "folder",
+                "frames"
+            ],
+            "properties": {
+                "frameCount": {
+                    "type": "integer",
+                    "minimum": 12,
+                    "description": "Number of rotation frames (minimum 12 for smooth rotation)"
+                },
+                "filenamePattern": {
+                    "type": "string",
+                    "description": "Pattern with {index} placeholder (e.g., model-A-1_{index}.jpg)"
+                },
+                "folder": {
+                    "type": "string",
+                    "description": "Path to frame images directory"
+                },
+                "frames": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ImageRef"
+                    },
+                    "description": "All frames must have identical dimensions"
+                }
+            }
+        }
+    }
+}

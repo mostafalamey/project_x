@@ -12,15 +12,18 @@
             "name": {
                 "type": "string"
             },
+            "category": {
+                "type": "string"
+            },
             "description": {
                 "type": "string"
             },
             "image": {
                 "type": "string"
             },
-            "distanceM": {
+            "distanceK": {
                 "type": "number",
-                "description": "Distance in meters"
+                "description": "Distance in kilometers"
             },
             "timeMin": {
                 "type": "number",
@@ -53,6 +56,28 @@
                     }
                 ]
             },
+            "path": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                },
+                "minItems": 4,
+                "description": "Array of x,y coordinates representing a path"
+            },
+            "pathStyle": {
+                "type": "object",
+                "properties": {
+                    "stroke": {
+                        "type": "string",
+                        "description": "Stroke color in hex format"
+                    },
+                    "strokeWidth": {
+                        "type": "number",
+                        "description": "Stroke width in pixels"
+                    }
+                },
+                "additionalProperties": false
+            },
             "type": {
                 "type": "string",
                 "enum": [
@@ -64,8 +89,6 @@
         "required": [
             "id",
             "name",
-            "description",
-            "image",
             "coords",
             "type"
         ],

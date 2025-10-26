@@ -1,0 +1,217 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://aurora-complex.com/schemas/admin/map-config.json",
+    "title": "Map Configuration",
+    "description": "Site map with landmarks and connecting paths",
+    "type": "object",
+    "required": [
+        "id",
+        "projectId",
+        "backgroundImage",
+        "landmarks",
+        "paths",
+        "viewport"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "projectId": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "backgroundImage": {
+            "$ref": "admin-model-config.schema.json#/definitions/ImageRef"
+        },
+        "landmarks": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Landmark"
+            }
+        },
+        "paths": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/LandmarkPath"
+            }
+        },
+        "viewport": {
+            "type": "object",
+            "required": [
+                "width",
+                "height"
+            ],
+            "properties": {
+                "width": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "height": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Landmark": {
+            "type": "object",
+            "required": [
+                "id",
+                "type",
+                "name",
+                "geometry"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "poi",
+                        "complex"
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "geometry": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/CircleGeometry"
+                        },
+                        {
+                            "$ref": "#/definitions/PolygonGeometry"
+                        }
+                    ]
+                },
+                "metadata": {
+                    "type": "object",
+                    "properties": {
+                        "distanceM": {
+                            "type": "number"
+                        },
+                        "timeMin": {
+                            "type": "integer"
+                        },
+                        "category": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "CircleGeometry": {
+            "type": "object",
+            "required": [
+                "type",
+                "center",
+                "radius"
+            ],
+            "properties": {
+                "type": {
+                    "const": "circle"
+                },
+                "center": {
+                    "$ref": "#/definitions/Point"
+                },
+                "radius": {
+                    "type": "number",
+                    "minimum": 1
+                }
+            }
+        },
+        "PolygonGeometry": {
+            "type": "object",
+            "required": [
+                "type",
+                "vertices",
+                "closed"
+            ],
+            "properties": {
+                "type": {
+                    "const": "polygon"
+                },
+                "vertices": {
+                    "type": "array",
+                    "minItems": 3,
+                    "items": {
+                        "$ref": "#/definitions/Point"
+                    }
+                },
+                "closed": {
+                    "const": true
+                }
+            }
+        },
+        "Point": {
+            "type": "object",
+            "required": [
+                "x",
+                "y"
+            ],
+            "properties": {
+                "x": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "y": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "LandmarkPath": {
+            "type": "object",
+            "required": [
+                "id",
+                "fromLandmarkId",
+                "toLandmarkId",
+                "pathData"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "fromLandmarkId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Must reference a 'complex' type landmark"
+                },
+                "toLandmarkId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Must reference a 'poi' type landmark"
+                },
+                "pathData": {
+                    "type": "string",
+                    "description": "SVG path d attribute"
+                },
+                "style": {
+                    "type": "object",
+                    "properties": {
+                        "stroke": {
+                            "type": "string",
+                            "default": "#000000"
+                        },
+                        "strokeWidth": {
+                            "type": "number",
+                            "minimum": 0.5,
+                            "default": 2
+                        },
+                        "strokeDasharray": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

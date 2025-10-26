@@ -1,0 +1,13 @@
+{
+    "project_name": "Project_X",
+    "project_slug": "project-x",
+    "developer": {
+        "name": "Aurora Developments",
+        "logo": "https://example.com/logos/aurora-developments.png",
+        "contact": {
+            "email": "contact@auroradevelopments.com",
+            "phone": "+1-800-555-1234",
+            "website": "https://auroradevelopments.com"
+        }
+    }
+}

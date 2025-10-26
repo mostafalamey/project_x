@@ -5,6 +5,10 @@
     "description": "Virtual tour with 360-degree panoramic scenes linked to a specific unit model",
     "type": "object",
     "properties": {
+        "tourId": {
+            "type": "string",
+            "description": "Unique identifier for this tour"
+        },
         "modelId": {
             "type": [
                 "string",
@@ -12,8 +16,17 @@
             ],
             "description": "Reference to the model ID this tour represents, or null for non-unit tours (e.g., street view)"
         },
+        "projectId": {
+            "type": "string",
+            "description": "Project identifier"
+        },
         "startSceneId": {
-            "type": "string"
+            "type": "string",
+            "description": "Deprecated: use startingSceneId instead"
+        },
+        "startingSceneId": {
+            "type": "string",
+            "description": "ID of the starting scene"
         },
         "scenes": {
             "type": "array",
@@ -21,6 +34,9 @@
                 "$ref": "#/definitions/PanoScene"
             },
             "minItems": 1
+        },
+        "metadata": {
+            "$ref": "#/definitions/TourMetadata"
         }
     },
     "required": [
@@ -36,29 +52,27 @@
                     "type": "string"
                 },
                 "image": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Deprecated: use panoramaImage instead"
+                },
+                "panoramaImage": {
+                    "$ref": "#/definitions/PanoramaImage"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Optional display name for the scene"
                 },
                 "links": {
                     "type": "array",
+                    "description": "Deprecated: use hotspots instead",
                     "items": {
-                        "type": "object",
-                        "properties": {
-                            "target": {
-                                "type": "string"
-                            },
-                            "x": {
-                                "type": "number"
-                            },
-                            "y": {
-                                "type": "number"
-                            }
-                        },
-                        "required": [
-                            "target",
-                            "x",
-                            "y"
-                        ],
-                        "additionalProperties": false
+                        "$ref": "#/definitions/PanoLink"
+                    }
+                },
+                "hotspots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PanoHotspot"
                     }
                 },
                 "initialView": {
@@ -79,8 +93,116 @@
                 }
             },
             "required": [
+                "id"
+            ],
+            "oneOf": [
+                {
+                    "required": [
+                        "image"
+                    ]
+                },
+                {
+                    "required": [
+                        "panoramaImage"
+                    ]
+                }
+            ],
+            "additionalProperties": false
+        },
+        "PanoLink": {
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string"
+                },
+                "x": {
+                    "type": "number"
+                },
+                "y": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "target",
+                "x",
+                "y"
+            ],
+            "additionalProperties": false
+        },
+        "PanoHotspot": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "targetSceneId": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "yaw": {
+                            "type": "number"
+                        },
+                        "pitch": {
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "yaw",
+                        "pitch"
+                    ],
+                    "additionalProperties": false
+                },
+                "icon": {
+                    "type": "string"
+                }
+            },
+            "required": [
                 "id",
-                "image"
+                "targetSceneId",
+                "position",
+                "icon"
+            ],
+            "additionalProperties": false
+        },
+        "PanoramaImage": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string"
+                },
+                "filename": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "url",
+                "filename"
+            ],
+            "additionalProperties": false
+        },
+        "TourMetadata": {
+            "type": "object",
+            "properties": {
+                "exportDate": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "sceneCount": {
+                    "type": "number"
+                },
+                "totalHotspots": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "exportDate",
+                "version",
+                "sceneCount",
+                "totalHotspots"
             ],
             "additionalProperties": false
         }

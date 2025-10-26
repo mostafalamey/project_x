@@ -9,15 +9,23 @@
             "type": "string",
             "description": "Floor identifier"
         },
+        "name": {
+            "type": "string",
+            "description": "Floor name (e.g., 'Ground Floor')"
+        },
+        "floorNumber": {
+            "type": "integer",
+            "description": "Floor number"
+        },
         "buildingId": {
             "type": "string",
             "description": "Building identifier this floor belongs to"
         },
-        "number": {
-            "type": "integer",
-            "description": "Floor number"
+        "buildingName": {
+            "type": "string",
+            "description": "Building name"
         },
-        "planImage": {
+        "floorPlanImage": {
             "type": "string",
             "description": "Path to the floor plan image"
         },
@@ -32,9 +40,11 @@
     },
     "required": [
         "id",
+        "name",
+        "floorNumber",
         "buildingId",
-        "number",
-        "planImage",
+        "buildingName",
+        "floorPlanImage",
         "units"
     ],
     "additionalProperties": false,
@@ -43,11 +53,41 @@
             "type": "object",
             "description": "Interactive polygon hotspot for a unit on the floor plan",
             "properties": {
-                "unitId": {
+                "unitNumber": {
                     "type": "string",
-                    "description": "Reference to the unit ID"
+                    "description": "Unit number"
                 },
-                "shape": {
+                "modelId": {
+                    "type": "string",
+                    "description": "Reference to the model ID"
+                },
+                "modelTitle": {
+                    "type": "string",
+                    "description": "Model title/name"
+                },
+                "availability": {
+                    "type": "string",
+                    "enum": [
+                        "available",
+                        "reserved",
+                        "sold"
+                    ],
+                    "description": "Unit availability status"
+                },
+                "pricing": {
+                    "type": "object",
+                    "properties": {
+                        "price": {
+                            "type": "number",
+                            "description": "Unit price"
+                        }
+                    },
+                    "required": [
+                        "price"
+                    ],
+                    "additionalProperties": false
+                },
+                "polygon": {
                     "type": "array",
                     "items": {
                         "type": "number"
@@ -57,8 +97,12 @@
                 }
             },
             "required": [
-                "unitId",
-                "shape"
+                "unitNumber",
+                "modelId",
+                "modelTitle",
+                "availability",
+                "pricing",
+                "polygon"
             ],
             "additionalProperties": false
         }

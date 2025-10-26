@@ -8,11 +8,13 @@ export type EnrichedUnitHotspot = {
   shape: number[];
   tooltip: {
     unitId: string;
+    unitNumber: string;
     modelId: string;
+    modelTitle: string;
     areaM2: number;
     bedrooms: number;
     bathrooms: number;
-    availability: Unit["availability"];
+    availability: "available" | "reserved" | "sold";
     price?: number;
   };
 };
@@ -26,46 +28,55 @@ export type EnrichedFloor = Omit<Floor, "units"> & {
 
 /**
  * Enriches a floor's unit hotspots with data from units and models
+ * Now the floor JSON contains inline unit data, so we fetch model details to enrich
  */
 export const enrichFloorData = (
   floor: Floor,
   units: Unit[],
   models: Model[]
 ): EnrichedFloor => {
-  const unitMap = new Map(units.map((u) => [u.id, u]));
   const modelMap = new Map(models.map((m) => [m.id, m]));
 
   const enrichedUnits: EnrichedUnitHotspot[] = floor.units
     .map((hotspot): EnrichedUnitHotspot | null => {
-      const unit = unitMap.get(hotspot.unitId);
-
-      if (!unit) {
-        console.warn(
-          `Unit ${hotspot.unitId} not found in units data for floor ${floor.id}`
-        );
-        return null;
-      }
-
-      const model = modelMap.get(unit.modelId);
+      // The floor now contains inline unit data
+      const model = modelMap.get(hotspot.modelId);
 
       if (!model) {
         console.warn(
-          `Model ${unit.modelId} not found in models data for unit ${unit.id}`
+          `Model ${hotspot.modelId} not found in models data for unit ${hotspot.unitNumber} on floor ${floor.id}`
         );
-        return null;
+        // Still return the unit with basic info even if model not found
+        return {
+          unitId: `${floor.buildingId}-${floor.floorNumber}-${hotspot.unitNumber}`,
+          shape: hotspot.polygon,
+          tooltip: {
+            unitId: `${floor.buildingId}-${floor.floorNumber}-${hotspot.unitNumber}`,
+            unitNumber: hotspot.unitNumber,
+            modelId: hotspot.modelId,
+            modelTitle: hotspot.modelTitle,
+            areaM2: 0, // Default if model not found
+            bedrooms: 0,
+            bathrooms: 0,
+            availability: hotspot.availability,
+            price: hotspot.pricing.price,
+          },
+        };
       }
 
       return {
-        unitId: hotspot.unitId,
-        shape: hotspot.shape,
+        unitId: `${floor.buildingId}-${floor.floorNumber}-${hotspot.unitNumber}`,
+        shape: hotspot.polygon,
         tooltip: {
-          unitId: unit.id,
+          unitId: `${floor.buildingId}-${floor.floorNumber}-${hotspot.unitNumber}`,
+          unitNumber: hotspot.unitNumber,
           modelId: model.id,
+          modelTitle: hotspot.modelTitle,
           areaM2: model.areaM2,
           bedrooms: model.bedrooms,
           bathrooms: model.bathrooms,
-          availability: unit.availability,
-          price: unit.price,
+          availability: hotspot.availability,
+          price: hotspot.pricing.price,
         },
       };
     })
@@ -83,6 +94,70 @@ export const enrichFloorData = (
 export const getUnitTourPath = (unit: Unit, models: Model[]): string | null => {
   const model = models.find((m) => m.id === unit.modelId);
   return model?.tourPath ?? null;
+};
+
+/**
+ * Gets the tour path by model ID directly
+ */
+export const getTourPathByModelId = (
+  modelId: string,
+  models: Model[]
+): string | null => {
+  const model = models.find((m) => m.id === modelId);
+  return model?.tourPath ?? null;
+};
+
+/**
+ * Checks if a tour exists for a given model ID by attempting to fetch it
+ * This is useful when tourPath in models.json is null but tour file exists
+ */
+export const checkTourExists = async (modelId: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`/data/tours/${modelId}/tour.json`);
+
+    // Check if response is ok and actually contains JSON
+    if (!response.ok) {
+      return false;
+    }
+
+    // Try to parse as JSON to verify it's a valid tour file
+    const contentType = response.headers.get("content-type");
+    if (!contentType?.includes("application/json")) {
+      return false;
+    }
+
+    const data = await response.json();
+    // Verify it has the basic structure of a tour
+    return data && Array.isArray(data.scenes) && data.scenes.length > 0;
+  } catch (error) {
+    // If fetch fails or JSON parsing fails, tour doesn't exist
+    console.log(`Tour file check failed for ${modelId}:`, error);
+    return false;
+  }
+};
+
+/**
+ * Gets the tour ID for a model, either from tourPath or by checking if tour exists
+ */
+export const getTourIdForModel = async (
+  modelId: string,
+  models: Model[]
+): Promise<string | null> => {
+  // First check if model has tourPath set
+  const tourPath = getTourPathByModelId(modelId, models);
+  if (tourPath) {
+    const tourId = deriveTourId(tourPath);
+    console.log(
+      `Model ${modelId} has tourPath: ${tourPath} -> tourId: ${tourId}`
+    );
+    return tourId;
+  }
+
+  // If no tourPath, check if tour file exists with modelId as tourId
+  console.log(`Model ${modelId} has no tourPath, checking for tour file...`);
+  const tourExists = await checkTourExists(modelId);
+  console.log(`Model ${modelId} tour file exists: ${tourExists}`);
+  return tourExists ? modelId : null;
 };
 
 /**

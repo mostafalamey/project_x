@@ -12,6 +12,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { BackNav } from "../components/BackNav";
 import { useTransitionContext } from "../contexts/TransitionContext";
+import { getTourIdForModel } from "../data/enrichment";
 import { loadModels } from "../data/loaders";
 import type { Model } from "../data/types";
 import { useModelRotation } from "../hooks/useModelRotation";
@@ -41,6 +42,8 @@ export const ModelView = () => {
   const [state, setState] = useState<FetchState<Model>>(initialState);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [tourId, setTourId] = useState<string | null>(null);
+  const [allModels, setAllModels] = useState<Model[]>([]);
 
   // Debug: Log URL parameters
   useEffect(() => {
@@ -70,6 +73,7 @@ export const ModelView = () => {
         const model = models.find((m) => m.id === modelId);
 
         if (!cancelled) {
+          setAllModels(models); // Store all models for tour detection
           if (model) {
             setState({ status: "success", data: model, error: null });
           } else {
@@ -103,6 +107,43 @@ export const ModelView = () => {
 
   const model = state.data;
   const rotation360 = model?.rotation360;
+
+  // Check for tour when model is loaded
+  useEffect(() => {
+    if (!model || !modelId || allModels.length === 0) {
+      setTourId(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const checkTour = async () => {
+      try {
+        const detectedTourId = await getTourIdForModel(modelId, allModels);
+
+        if (!cancelled) {
+          console.log(
+            `ModelView: Tour detection for model ${modelId}:`,
+            detectedTourId
+              ? `Found tour ${detectedTourId}`
+              : "No tour available"
+          );
+          setTourId(detectedTourId);
+        }
+      } catch (error) {
+        console.warn("ModelView: Error checking for tour:", error);
+        if (!cancelled) {
+          setTourId(null);
+        }
+      }
+    };
+
+    checkTour();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [model, modelId, allModels]);
 
   // Back navigation logic
   const backHref = useMemo(() => {
@@ -388,39 +429,30 @@ export const ModelView = () => {
                     {model.description}
                   </p>
                 )}
-                {model?.tourPath && (
+                {tourId && (
                   <button
                     type="button"
                     onClick={() => {
-                      // Extract tour ID from path like "/data/tours/model-A-1/tour.json"
-                      const pathParts =
-                        model.tourPath?.split("/").filter(Boolean) ?? [];
-                      const tourId = pathParts[pathParts.length - 2]; // Get folder name before tour.json
-                      if (tourId) {
-                        // Store the back location (THIS ModelView page) before navigating
-                        const building = searchParams.get("building");
-                        const floor = searchParams.get("floor");
-                        const angle = searchParams.get("angle");
+                      // Store the back location (THIS ModelView page) before navigating
+                      const building = searchParams.get("building");
+                      const floor = searchParams.get("floor");
+                      const angle = searchParams.get("angle");
 
-                        // Build the back URL to this ModelView page
-                        const params = new URLSearchParams();
-                        if (building) params.set("building", building);
-                        if (floor) params.set("floor", floor);
-                        if (angle) params.set("angle", angle);
-                        const query = params.toString();
-                        const backUrl = query
-                          ? `/model/${modelId}?${query}`
-                          : `/model/${modelId}`;
+                      // Build the back URL to this ModelView page
+                      const params = new URLSearchParams();
+                      if (building) params.set("building", building);
+                      if (floor) params.set("floor", floor);
+                      if (angle) params.set("angle", angle);
+                      const query = params.toString();
+                      const backUrl = query
+                        ? `/model/${modelId}?${query}`
+                        : `/model/${modelId}`;
 
-                        console.log(
-                          "ModelView: Storing back location:",
-                          backUrl
-                        );
-                        setTourBackLocation(backUrl);
+                      console.log("ModelView: Storing back location:", backUrl);
+                      setTourBackLocation(backUrl);
 
-                        // Navigate to tour (no query params needed!)
-                        navigate(`/tour/${tourId}`);
-                      }
+                      // Navigate to tour (no query params needed!)
+                      navigate(`/tour/${tourId}`);
                     }}
                     className="mt-md inline-flex items-center gap-sm rounded-badge bg-primary px-md py-sm text-sm font-semibold text-text-inverse transition-hover hover:bg-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   >

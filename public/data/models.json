@@ -1,45 +1,27 @@
 [
-    {
-        "id": "A-1",
-        "title": "Modern 3-Bedroom Apartment",
-        "description": "Spacious layout with open-plan living area, modern kitchen, and generous master bedroom with en-suite. Perfect for families seeking contemporary comfort.",
-        "areaM2": 118,
-        "bedrooms": 3,
-        "bathrooms": 2,
-        "tourPath": "/data/tours/model-A-1/tour.json",
-        "imagePath": "/data/models/model-A-1.jpg",
-        "rotation360": {
-            "folder": "/data/models/model-A-1",
-            "frameCount": 60,
-            "filenamePattern": "model-A-1_{index}.jpg"
-        }
-    },
-    {
-        "id": "B-2",
-        "title": "Elegant 2-Bedroom Suite",
-        "description": "Sophisticated design with efficient use of space. Features a bright living area, modern amenities, and two comfortable bedrooms.",
-        "areaM2": 102,
-        "bedrooms": 2,
-        "bathrooms": 2,
-        "tourPath": null,
-        "imagePath": "/data/models/model-B-2.jpg",
-        "rotation360": {
-            "folder": "/data/models/model-B-2",
-            "frameCount": 36
-        }
-    },
-    {
-        "id": "C-1",
-        "title": "Cozy Studio Apartment",
-        "description": "Compact and efficient studio perfect for singles or couples. Smart layout maximizes every square meter with style and functionality.",
-        "areaM2": 86,
-        "bedrooms": 1,
-        "bathrooms": 1,
-        "tourPath": null,
-        "imagePath": "/data/models/model-C-1.jpg",
-        "rotation360": {
-            "folder": "/data/models/model-C-1",
-            "frameCount": 36
-        }
+  {
+    "id": "A-2",
+    "title": "Elegant 2-Bedroom Suite",
+    "description": "Sophisticated design with efficient use of space.",
+    "areaM2": 110,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "tourPath": "/data/tours/A-2",
+    "imagePath": "/data/models/model-A-2.jpg",
+    "rotation360": {
+      "folder": "/data/models/model-A-2",
+      "frameCount": 60,
+      "filenamePattern": "model-A-2_{index}.jpg"
     }
+  },
+  {
+    "id": "A-3",
+    "title": "A Modern 3-Bedroom Apartment",
+    "description": "Spacious design with comfortable spaces",
+    "areaM2": 185,
+    "bedrooms": 3,
+    "bathrooms": 3,
+    "tourPath": null,
+    "imagePath": "/data/models/model-A-3.jpg"
+  }
 ]

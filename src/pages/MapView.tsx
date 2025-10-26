@@ -10,7 +10,6 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { Tooltip } from "../components/Tooltip";
 import { useTransitionContext } from "../contexts/TransitionContext";
 import { loadLandmarks } from "../data/loaders";
 import type { Landmark } from "../data/types";
@@ -19,9 +18,8 @@ import { usePointerPan } from "../hooks/usePointerPan";
 import { useZoomPan } from "../hooks/useZoomPan";
 import { prefersReducedMotion } from "../utils/accessibility";
 
-const MAP_VIEWBOX = { width: 960, height: 600 };
-const MAP_IMAGE = "/data/map.png";
-const PATH_CURVE_OFFSET = 140;
+const MAP_VIEWBOX = { width: 1920, height: 1080 };
+const MAP_IMAGE = "/data/map.jpeg";
 
 type FetchState<T> = {
   status: "idle" | "loading" | "error" | "success";
@@ -280,7 +278,7 @@ export const MapView = () => {
   );
 
   const pathDefinition = useMemo(() => {
-    if (!complexLandmark || !complexPoint || !activeLandmark) {
+    if (!activeLandmark || !activeLandmark.path) {
       return null;
     }
 
@@ -288,18 +286,21 @@ export const MapView = () => {
       return null;
     }
 
-    const targetPoint = getLandmarkPoint(activeLandmark);
+    // Convert flat array [x1, y1, x2, y2, ...] to SVG path
+    const pathArray = activeLandmark.path;
 
-    if (!targetPoint) {
+    if (!Array.isArray(pathArray) || pathArray.length < 4) {
       return null;
     }
 
-    const controlX = (complexPoint.x + targetPoint.x) / 2;
-    const controlY =
-      Math.min(complexPoint.y, targetPoint.y) - PATH_CURVE_OFFSET;
+    let pathString = `M ${pathArray[0]} ${pathArray[1]}`;
 
-    return `M ${complexPoint.x} ${complexPoint.y} Q ${controlX} ${controlY} ${targetPoint.x} ${targetPoint.y}`;
-  }, [activeLandmark, complexLandmark, complexPoint]);
+    for (let i = 2; i < pathArray.length; i += 2) {
+      pathString += ` L ${pathArray[i]} ${pathArray[i + 1]}`;
+    }
+
+    return pathString;
+  }, [activeLandmark]);
 
   const handleHotspotActivate = (landmark: Landmark) => {
     setActiveLandmarkId(landmark.id);
@@ -421,7 +422,7 @@ export const MapView = () => {
           <svg
             className="absolute inset-0 h-full w-full"
             viewBox={`0 0 ${MAP_VIEWBOX.width} ${MAP_VIEWBOX.height}`}
-            preserveAspectRatio="xMidYMid meet"
+            preserveAspectRatio="xMidYMid slice"
             role="presentation"
             onPointerDown={handleBackgroundPointerDown}
           >
@@ -436,17 +437,39 @@ export const MapView = () => {
               >
                 <path d="M 0 0 L 6 3 L 0 6 z" fill="rgb(16 185 129, 0.85)" />
               </marker>
+              {/* Dynamic marker for custom path colors */}
+              {activeLandmark?.pathStyle?.stroke && (
+                <marker
+                  id={`landmark-arrow-${activeLandmark.id}`}
+                  markerWidth="6"
+                  markerHeight="6"
+                  refX="6"
+                  refY="3"
+                  orient="auto"
+                >
+                  <path
+                    d="M 0 0 L 6 3 L 0 6 z"
+                    fill={activeLandmark.pathStyle.stroke}
+                  />
+                </marker>
+              )}
             </defs>
             <AnimatePresence>
               {pathDefinition ? (
                 <motion.path
                   key={pathDefinition}
                   d={pathDefinition}
-                  stroke="rgb(16 185 129)"
-                  strokeWidth={4}
+                  stroke={
+                    activeLandmark?.pathStyle?.stroke || "rgb(16 185 129)"
+                  }
+                  strokeWidth={activeLandmark?.pathStyle?.strokeWidth || 4}
                   strokeLinecap="round"
                   fill="none"
-                  markerEnd="url(#landmark-arrow)"
+                  markerEnd={
+                    activeLandmark?.pathStyle?.stroke
+                      ? `url(#landmark-arrow-${activeLandmark.id})`
+                      : "url(#landmark-arrow)"
+                  }
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: 1 }}
                   exit={{ pathLength: 0, opacity: 0 }}
@@ -653,10 +676,10 @@ export const MapView = () => {
                                   </p>
                                 )}
                                 <div className="flex items-center gap-sm text-caption text-text-tertiary">
-                                  {typeof landmark.distanceM === "number" && (
+                                  {typeof landmark.distanceK === "number" && (
                                     <div className="flex items-center gap-xs">
                                       <MapPin className="w-3 h-3" />
-                                      <span>{landmark.distanceM} km away</span>
+                                      <span>{landmark.distanceK} km away</span>
                                     </div>
                                   )}
                                   {typeof landmark.timeMin === "number" && (

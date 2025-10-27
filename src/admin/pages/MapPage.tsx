@@ -14,7 +14,7 @@ export default function MapPage() {
   const projectId = "default"; // TODO: Get from project store
 
   return (
-    <AdminLayout>
+    <AdminLayout fullViewport={true}>
       <MapEditor projectId={projectId} />
     </AdminLayout>
   );

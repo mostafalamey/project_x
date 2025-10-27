@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useBuildingsStore } from "../../stores/buildingsStore";
 import { useMasterPlanStore } from "../../stores/masterPlanStore";
+import { useSidebar } from "../../contexts/SidebarContext";
 import { ImageDropzone } from "../upload";
 import { FullViewportCanvas } from "../canvas";
 import { imageRefToDataURL } from "../../utils/imageProcessing";
@@ -37,6 +38,7 @@ interface BuildingEditorProps {
 // ============================================================================
 
 export default function BuildingEditor({ projectId }: BuildingEditorProps) {
+  const { sidebarWidth } = useSidebar();
   const {
     buildings,
     selectedBuildingId,
@@ -327,6 +329,28 @@ export default function BuildingEditor({ projectId }: BuildingEditorProps) {
     }
   };
 
+  // Handle floor hotspot deletion
+  const handleDeleteFloorHotspot = useCallback(async () => {
+    if (!selectedBuilding || !selectedFloorId) return;
+
+    const floor = selectedBuilding.floors.find((f) => f.id === selectedFloorId);
+    if (!floor || !floor.hotspot) return;
+
+    if (!window.confirm("Delete this floor hotspot?")) {
+      return;
+    }
+
+    try {
+      await updateFloor(selectedBuilding.id, selectedFloorId, {
+        hotspot: undefined,
+      });
+      setSelectedFloorId(null);
+    } catch (error) {
+      console.error("Failed to delete hotspot:", error);
+      alert("Failed to delete hotspot. Please try again.");
+    }
+  }, [selectedBuilding, selectedFloorId, updateFloor]);
+
   // Handle opening edit floor modal
   const handleEditFloor = (floor: FloorReference) => {
     setEditingFloorId(floor.id);
@@ -453,10 +477,15 @@ export default function BuildingEditor({ projectId }: BuildingEditorProps) {
     }
   };
 
+  const internalSidebarWidth = selectedBuilding ? 320 : 0; // w-80 = 320px
+
   return (
-    <div className="h-full flex flex-col">
-      {/* Toolbar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+    <div className="h-screen w-screen relative">
+      {/* Toolbar - Fixed overlay at top (starts after main sidebar) */}
+      <div
+        className="fixed top-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between"
+        style={{ zIndex: 10, left: `${sidebarWidth}px` }}
+      >
         <div className="flex items-center gap-2">
           {/* Building Selector */}
           <div className="flex items-center gap-2">
@@ -573,253 +602,278 @@ export default function BuildingEditor({ projectId }: BuildingEditorProps) {
         )}
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar - Floor List */}
-        {selectedBuilding && (
-          <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-            <div className="p-4">
-              {/* Add Floor Button */}
-              <button
-                onClick={() => setIsAddFloorOpen(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-4"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="text-sm font-medium">Add Floor</span>
-              </button>
+      {/* Sidebar - Floor List (Fixed overlay on left, next to main sidebar) */}
+      {selectedBuilding && (
+        <div
+          className="fixed top-16 bottom-0 w-80 bg-gray-400/70 backdrop-blur-md border-r border-gray-200 overflow-y-auto shadow-lg"
+          style={{ left: `${sidebarWidth}px`, zIndex: 15 }}
+        >
+          <div className="p-4">
+            {/* Add Floor Button */}
+            <button
+              onClick={() => setIsAddFloorOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-4"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-sm font-medium">Add Floor</span>
+            </button>
 
-              {/* Floor List */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Floors
-                </h3>
-                {selectedBuilding.floors.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-8">
-                    No floors added yet.
-                    <br />
-                    Click "Add Floor" to begin.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedBuilding.floors
-                      .sort((a, b) => b.floorNumber - a.floorNumber)
-                      .map((floor) => (
-                        <div
-                          key={floor.id}
-                          className={`p-3 border rounded-lg transition-colors cursor-pointer ${
-                            selectedFloorId === floor.id
-                              ? "border-blue-500 bg-blue-50"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                          onClick={() => setSelectedFloorId(floor.id)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <div className="font-medium text-gray-900">
-                                  {floor.name}
-                                </div>
-                                {!floor.hotspot && (
-                                  <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
-                                    No hotspot
-                                  </span>
-                                )}
+            {/* Floor List */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Floors
+              </h3>
+              {selectedBuilding.floors.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-8">
+                  No floors added yet.
+                  <br />
+                  Click "Add Floor" to begin.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {selectedBuilding.floors
+                    .sort((a, b) => b.floorNumber - a.floorNumber)
+                    .map((floor) => (
+                      <div
+                        key={floor.id}
+                        className={`p-3 border rounded-lg transition-colors cursor-pointer ${
+                          selectedFloorId === floor.id
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        onClick={() => setSelectedFloorId(floor.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <div className="font-medium text-gray-900">
+                                {floor.name}
                               </div>
-                              <div className="text-sm text-gray-500">
-                                Floor {floor.floorNumber}
-                              </div>
+                              {!floor.hotspot && (
+                                <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
+                                  No hotspot
+                                </span>
+                              )}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditFloor(floor);
-                                }}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Edit floor"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteFloor(floor.id);
-                                }}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Delete floor"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                            <div
+                              className={`text-sm ${
+                                selectedFloorId === floor.id
+                                  ? "text-gray-900"
+                                  : "text-gray-200"
+                              }`}
+                            >
+                              Floor {floor.floorNumber}
                             </div>
                           </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditFloor(floor);
+                              }}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit floor"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteFloor(floor.id);
+                              }}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete floor"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-                      ))}
-                  </div>
-                )}
-              </div>
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Canvas Area - Full viewport */}
+      <div
+        className="fixed inset-0"
+        style={{
+          cursor: drawingMode !== "none" ? "crosshair" : "default",
+          zIndex: 0,
+        }}
+      >
+        {!selectedBuilding ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+            <Building2 className="w-16 h-16 mb-4" />
+            <p className="text-lg mb-2">No building selected</p>
+            <p className="text-sm">
+              Select a building from the dropdown to begin
+            </p>
+          </div>
+        ) : !buildingImageUrl ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+            <Upload className="w-16 h-16 mb-4" />
+            <p className="text-lg mb-2">No building image uploaded</p>
+            <p className="text-sm">Click "Upload Image" to begin</p>
+          </div>
+        ) : (
+          <FullViewportCanvas
+            imageUrl={buildingImageUrl}
+            onCanvasReady={(stage) => {
+              stageRef.current = stage;
+            }}
+          >
+            {/* Render floor hotspots */}
+            <Group>
+              {/* Existing floor hotspots */}
+              {selectedBuilding.floors
+                .filter((floor) => floor.hotspot)
+                .map((floor) => {
+                  const isSelected = selectedFloorId === floor.id;
+                  const points = floor.hotspot!.vertices.flatMap((p) => [
+                    p.x,
+                    p.y,
+                  ]);
+
+                  return (
+                    <Group key={floor.id}>
+                      {/* Polygon fill */}
+                      <Line
+                        points={points}
+                        closed
+                        fill={
+                          isSelected
+                            ? "rgba(34, 197, 94, 0.3)"
+                            : "rgba(139, 92, 246, 0.2)"
+                        }
+                        stroke={isSelected ? "#22c55e" : "#8b5cf6"}
+                        strokeWidth={2}
+                        onClick={() => setSelectedFloorId(floor.id)}
+                        onTap={() => setSelectedFloorId(floor.id)}
+                      />
+
+                      {/* Floor label */}
+                      <Text
+                        x={
+                          floor.hotspot!.vertices.reduce(
+                            (sum, v) => sum + v.x,
+                            0
+                          ) / floor.hotspot!.vertices.length
+                        }
+                        y={
+                          floor.hotspot!.vertices.reduce(
+                            (sum, v) => sum + v.y,
+                            0
+                          ) / floor.hotspot!.vertices.length
+                        }
+                        text={floor.name}
+                        fontSize={14}
+                        fill={isSelected ? "#16a34a" : "#6d28d9"}
+                        fontStyle="bold"
+                        align="center"
+                        offsetX={30}
+                      />
+
+                      {/* Vertex handles when selected */}
+                      {isSelected &&
+                        floor.hotspot!.vertices.map((point, idx) => (
+                          <Circle
+                            key={idx}
+                            x={point.x}
+                            y={point.y}
+                            radius={6}
+                            fill="#22c55e"
+                            stroke="#fff"
+                            strokeWidth={2}
+                            draggable
+                            onDragMove={(e) => {
+                              const newX = e.target.x();
+                              const newY = e.target.y();
+                              handleVertexDragMove(floor.id, idx, newX, newY);
+                            }}
+                            onMouseEnter={(e) => {
+                              const stage = e.target.getStage();
+                              if (stage) {
+                                stage.container().style.cursor = "move";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              const stage = e.target.getStage();
+                              if (stage) {
+                                stage.container().style.cursor =
+                                  drawingMode !== "none"
+                                    ? "crosshair"
+                                    : "default";
+                              }
+                            }}
+                          />
+                        ))}
+                    </Group>
+                  );
+                })}
+
+              {/* Temporary drawing points */}
+              {drawingMode === "polygon" && tempPoints.length > 0 && (
+                <Group>
+                  {/* Draw lines between points */}
+                  <Line
+                    points={tempPoints.flatMap((p) => [p.x, p.y])}
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    dash={[5, 5]}
+                  />
+
+                  {/* Draw points */}
+                  {tempPoints.map((point, idx) => (
+                    <Circle
+                      key={idx}
+                      x={point.x}
+                      y={point.y}
+                      radius={5}
+                      fill={idx === 0 ? "#10b981" : "#3b82f6"}
+                      stroke="#fff"
+                      strokeWidth={2}
+                    />
+                  ))}
+
+                  {/* Line from last point to first (if enough points) */}
+                  {tempPoints.length >= 3 && (
+                    <Line
+                      points={[
+                        tempPoints[tempPoints.length - 1].x,
+                        tempPoints[tempPoints.length - 1].y,
+                        tempPoints[0].x,
+                        tempPoints[0].y,
+                      ]}
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      dash={[10, 5]}
+                    />
+                  )}
+                </Group>
+              )}
+            </Group>
+          </FullViewportCanvas>
         )}
 
-        {/* Canvas Area */}
-        <div
-          className="flex-1 overflow-hidden relative bg-gray-100"
-          style={{ cursor: drawingMode !== "none" ? "crosshair" : "default" }}
-        >
-          {!selectedBuilding ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-              <Building2 className="w-16 h-16 mb-4" />
-              <p className="text-lg mb-2">No building selected</p>
-              <p className="text-sm">
-                Select a building from the dropdown to begin
-              </p>
-            </div>
-          ) : !buildingImageUrl ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-              <Upload className="w-16 h-16 mb-4" />
-              <p className="text-lg mb-2">No building image uploaded</p>
-              <p className="text-sm">Click "Upload Image" to begin</p>
-            </div>
-          ) : (
-            <FullViewportCanvas
-              imageUrl={buildingImageUrl}
-              onCanvasReady={(stage) => {
-                stageRef.current = stage;
-              }}
+        {/* Delete Hotspot Button - Shows when floor with hotspot is selected */}
+        {selectedBuilding &&
+          selectedFloorId &&
+          selectedBuilding.floors.find((f) => f.id === selectedFloorId)
+            ?.hotspot &&
+          drawingMode === "none" && (
+            <button
+              onClick={handleDeleteFloorHotspot}
+              className="absolute bottom-4 right-4 z-10 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 shadow-lg"
+              title="Delete floor hotspot"
             >
-              {/* Render floor hotspots */}
-              <Group>
-                {/* Existing floor hotspots */}
-                {selectedBuilding.floors
-                  .filter((floor) => floor.hotspot)
-                  .map((floor) => {
-                    const isSelected = selectedFloorId === floor.id;
-                    const points = floor.hotspot!.vertices.flatMap((p) => [
-                      p.x,
-                      p.y,
-                    ]);
-
-                    return (
-                      <Group key={floor.id}>
-                        {/* Polygon fill */}
-                        <Line
-                          points={points}
-                          closed
-                          fill={
-                            isSelected
-                              ? "rgba(59, 130, 246, 0.3)"
-                              : "rgba(139, 92, 246, 0.2)"
-                          }
-                          stroke={isSelected ? "#3b82f6" : "#8b5cf6"}
-                          strokeWidth={2}
-                          onClick={() => setSelectedFloorId(floor.id)}
-                          onTap={() => setSelectedFloorId(floor.id)}
-                        />
-
-                        {/* Floor label */}
-                        <Text
-                          x={
-                            floor.hotspot!.vertices.reduce(
-                              (sum, v) => sum + v.x,
-                              0
-                            ) / floor.hotspot!.vertices.length
-                          }
-                          y={
-                            floor.hotspot!.vertices.reduce(
-                              (sum, v) => sum + v.y,
-                              0
-                            ) / floor.hotspot!.vertices.length
-                          }
-                          text={floor.name}
-                          fontSize={14}
-                          fill={isSelected ? "#1e40af" : "#6d28d9"}
-                          fontStyle="bold"
-                          align="center"
-                          offsetX={30}
-                        />
-
-                        {/* Vertex handles when selected */}
-                        {isSelected &&
-                          floor.hotspot!.vertices.map((point, idx) => (
-                            <Circle
-                              key={idx}
-                              x={point.x}
-                              y={point.y}
-                              radius={6}
-                              fill="#3b82f6"
-                              stroke="#fff"
-                              strokeWidth={2}
-                              draggable
-                              onDragMove={(e) => {
-                                const newX = e.target.x();
-                                const newY = e.target.y();
-                                handleVertexDragMove(floor.id, idx, newX, newY);
-                              }}
-                              onMouseEnter={(e) => {
-                                const stage = e.target.getStage();
-                                if (stage) {
-                                  stage.container().style.cursor = "move";
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                const stage = e.target.getStage();
-                                if (stage) {
-                                  stage.container().style.cursor =
-                                    drawingMode !== "none"
-                                      ? "crosshair"
-                                      : "default";
-                                }
-                              }}
-                            />
-                          ))}
-                      </Group>
-                    );
-                  })}
-
-                {/* Temporary drawing points */}
-                {drawingMode === "polygon" && tempPoints.length > 0 && (
-                  <Group>
-                    {/* Draw lines between points */}
-                    <Line
-                      points={tempPoints.flatMap((p) => [p.x, p.y])}
-                      stroke="#3b82f6"
-                      strokeWidth={2}
-                      dash={[5, 5]}
-                    />
-
-                    {/* Draw points */}
-                    {tempPoints.map((point, idx) => (
-                      <Circle
-                        key={idx}
-                        x={point.x}
-                        y={point.y}
-                        radius={5}
-                        fill={idx === 0 ? "#10b981" : "#3b82f6"}
-                        stroke="#fff"
-                        strokeWidth={2}
-                      />
-                    ))}
-
-                    {/* Line from last point to first (if enough points) */}
-                    {tempPoints.length >= 3 && (
-                      <Line
-                        points={[
-                          tempPoints[tempPoints.length - 1].x,
-                          tempPoints[tempPoints.length - 1].y,
-                          tempPoints[0].x,
-                          tempPoints[0].y,
-                        ]}
-                        stroke="#10b981"
-                        strokeWidth={2}
-                        dash={[10, 5]}
-                      />
-                    )}
-                  </Group>
-                )}
-              </Group>
-            </FullViewportCanvas>
+              <Trash2 className="w-4 h-4" />
+              Delete Hotspot
+            </button>
           )}
-        </div>
       </div>
 
       {/* Add Floor Modal */}

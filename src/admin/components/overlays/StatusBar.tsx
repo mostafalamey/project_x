@@ -34,7 +34,10 @@ export default function StatusBar({
   const zoomPercentage = Math.round(scale * 100);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-8 bg-gray-800 text-gray-200 text-xs flex items-center justify-between px-4 z-10">
+    <div
+      className="fixed bottom-0 left-0 right-0 h-8 bg-gray-800 text-gray-200 text-xs flex items-center justify-between px-4"
+      style={{ zIndex: 10 }}
+    >
       {/* Left Section */}
       <div className="flex items-center gap-6">
         {/* Current Tool */}

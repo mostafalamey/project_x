@@ -14,7 +14,7 @@ export default function MasterPlanPage() {
   const projectId = "default"; // TODO: Get from project store
 
   return (
-    <AdminLayout>
+    <AdminLayout fullViewport={true}>
       <MasterPlanEditor projectId={projectId} />
     </AdminLayout>
   );

@@ -70,7 +70,10 @@ export default function ToolbarOverlay({
   disabled = false,
 }: ToolbarOverlayProps) {
   return (
-    <div className="fixed top-20 left-6 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex flex-col gap-2 z-10">
+    <div
+      className="fixed top-20 right-6 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex flex-col gap-2"
+      style={{ zIndex: 10 }}
+    >
       {/* Tools */}
       {tools.map((tool) => {
         const Icon = tool.icon;

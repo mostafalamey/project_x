@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useMasterPlanStore } from "../../stores/masterPlanStore";
+import { useSidebar } from "../../contexts/SidebarContext";
 import { ImageDropzone } from "../upload";
 import { TransitionUploadModal, PanoramicUploadModal } from "../modals";
 import { FullViewportCanvas, BuildingHotspotTool } from "../canvas";
@@ -105,6 +106,7 @@ interface MasterPlanEditorProps {
 // ============================================================================
 
 export default function MasterPlanEditor({ projectId }: MasterPlanEditorProps) {
+  const { sidebarWidth } = useSidebar();
   const {
     masterPlan,
     angles,
@@ -351,6 +353,7 @@ export default function MasterPlanEditor({ projectId }: MasterPlanEditorProps) {
       if (clickedOnBackground && drawingMode === "none") {
         setSelectedHotspotId(null);
         selectTourPoint(null);
+        selectBuilding(null); // Also deselect building
       }
 
       const stage = e.target.getStage();
@@ -626,10 +629,15 @@ export default function MasterPlanEditor({ projectId }: MasterPlanEditorProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedHotspotId, drawingMode, handleDeleteHotspot]);
 
+  const internalSidebarWidth = angles.length > 0 ? 320 : 0; // w-80 = 320px
+
   return (
-    <div className="h-full flex flex-col">
-      {/* Toolbar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+    <div className="h-screen w-screen relative">
+      {/* Toolbar - Fixed overlay at top (starts after main sidebar) */}
+      <div
+        className="fixed top-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between"
+        style={{ zIndex: 10, left: `${sidebarWidth}px` }}
+      >
         <div className="flex items-center gap-2">
           {/* Upload Angle Button */}
           <button
@@ -820,32 +828,39 @@ export default function MasterPlanEditor({ projectId }: MasterPlanEditorProps) {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Building List Sidebar */}
-        {angles.length > 0 && (
-          <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                Buildings
-              </h3>
-              <button
-                onClick={() => setIsAddBuildingOpen(true)}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-              >
-                <Plus className="w-4 h-4" />
-                Add Building
-              </button>
-            </div>
+      {/* Building List Sidebar (Fixed overlay on left, next to main sidebar) */}
+      {angles.length > 0 && (
+        <div
+          className="fixed top-16 bottom-0 w-80 bg-gray-400/70 backdrop-blur-md border-r border-gray-200 flex flex-col shadow-lg"
+          style={{ left: `${sidebarWidth}px`, zIndex: 15 }}
+        >
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              Buildings
+            </h3>
+            <button
+              onClick={() => setIsAddBuildingOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Building
+            </button>
+          </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
-              {buildings.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center mt-4">
-                  No buildings yet. Add one to start.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {buildings.map((building) => (
+          <div className="flex-1 overflow-y-auto p-4">
+            {buildings.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center mt-4">
+                No buildings yet. Add one to start.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {buildings.map((building) => {
+                  // Find hotspot for this building on current angle
+                  const hotspotOnCurrentAngle = currentAngle?.hotspots?.find(
+                    (h) => h.buildingId === building.id
+                  );
+
+                  return (
                     <div
                       key={building.id}
                       className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
@@ -853,14 +868,28 @@ export default function MasterPlanEditor({ projectId }: MasterPlanEditorProps) {
                           ? "border-blue-500 bg-blue-50"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
-                      onClick={() => selectBuilding(building.id)}
+                      onClick={() => {
+                        selectBuilding(building.id);
+                        // Also select the hotspot if it exists on current angle
+                        if (hotspotOnCurrentAngle) {
+                          setSelectedHotspotId(hotspotOnCurrentAngle.id);
+                        } else {
+                          setSelectedHotspotId(null);
+                        }
+                      }}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
                             {building.name}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p
+                            className={`text-xs ${
+                              selectedBuildingId === building.id
+                                ? "text-gray-900"
+                                : "text-gray-200"
+                            } mt-1`}
+                          >
                             ID: {building.id}
                           </p>
                         </div>
@@ -870,7 +899,11 @@ export default function MasterPlanEditor({ projectId }: MasterPlanEditorProps) {
                               e.stopPropagation();
                               handleEditBuilding(building);
                             }}
-                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                            className={`p-1 ${
+                              selectedBuildingId === building.id
+                                ? "text-gray-900"
+                                : "text-gray-200"
+                            } hover:text-blue-600 transition-colors`}
                             title="Edit building"
                           >
                             <Pencil className="w-4 h-4" />
@@ -886,8 +919,105 @@ export default function MasterPlanEditor({ projectId }: MasterPlanEditorProps) {
                                 deleteBuilding(building.id);
                               }
                             }}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            className={`p-1 ${
+                              selectedBuildingId === building.id
+                                ? "text-gray-900"
+                                : "text-gray-200"
+                            } hover:text-red-600 transition-colors`}
                             title="Delete building"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Tour Points Section */}
+          <div className="border-t border-gray-200">
+            <div className="p-4 border-b border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                Street View Tours
+              </h3>
+              <button
+                onClick={() => setIsAddTourPointOpen(true)}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Add Tour Point
+              </button>
+            </div>
+
+            <div className="overflow-y-auto p-4 max-h-64">
+              {tourPoints.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center mt-4">
+                  No tour points yet. Add one to start.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {tourPoints.map((tourPoint) => (
+                    <div
+                      key={tourPoint.id}
+                      className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                        storeTourPointId === tourPoint.id
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => selectTourPoint(tourPoint.id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className={`text-sm font-medium text-gray-900 truncate`}
+                          >
+                            {tourPoint.name}
+                          </p>
+                          <p
+                            className={`text-xs ${
+                              storeTourPointId === tourPoint.id
+                                ? "text-gray-900"
+                                : "text-gray-200"
+                            } mt-1`}
+                          >
+                            {tourPoint.positions.length} position(s)
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditTourPoint(tourPoint);
+                            }}
+                            className={`p-1 ${
+                              storeTourPointId === tourPoint.id
+                                ? "text-gray-900"
+                                : "text-gray-200"
+                            } hover:text-blue-600 transition-colors`}
+                            title="Edit tour point"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (
+                                window.confirm(
+                                  `Delete tour point "${tourPoint.name}"? This will remove it from all angles.`
+                                )
+                              ) {
+                                deleteTourPoint(tourPoint.id);
+                              }
+                            }}
+                            className={`p-1 ${
+                              storeTourPointId === tourPoint.id
+                                ? "text-gray-900"
+                                : "text-gray-200"
+                            } hover:text-red-600 transition-colors`}
+                            title="Delete tour point"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -898,237 +1028,166 @@ export default function MasterPlanEditor({ projectId }: MasterPlanEditorProps) {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Tour Points Section */}
-            <div className="border-t border-gray-200">
-              <div className="p-4 border-b border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                  Street View Tours
-                </h3>
+      {/* Canvas Area - Full viewport */}
+      <div
+        className="fixed inset-0"
+        style={{
+          cursor: drawingMode !== "none" ? "crosshair" : "default",
+          zIndex: 0,
+        }}
+      >
+        {currentAngleImageUrl ? (
+          <>
+            <FullViewportCanvas
+              imageUrl={currentAngleImageUrl}
+              onCanvasReady={(stage) => {
+                stageRef.current = stage;
+              }}
+            >
+              <BuildingHotspotTool
+                hotspots={currentAngle?.hotspots || []}
+                buildings={buildings}
+                selectedBuildingId={selectedBuildingId}
+                selectedHotspotId={selectedHotspotId}
+                tempPoints={tempPoints}
+                onSelect={(hotspotId) => {
+                  setSelectedHotspotId(hotspotId);
+                  // Also select the building that owns this hotspot
+                  const hotspot = currentAngle?.hotspots?.find(
+                    (h) => h.id === hotspotId
+                  );
+                  if (hotspot) {
+                    selectBuilding(hotspot.buildingId);
+                  }
+                }}
+                onUpdateHotspot={handleUpdateHotspot}
+                isDrawingMode={drawingMode === "building"}
+              />
+
+              {/* Tour Point Markers */}
+              {currentAngle &&
+                tourPoints
+                  .filter((tp) => currentAngle.tourPointIds?.includes(tp.id))
+                  .map((tourPoint) => {
+                    const position = tourPoint.positions.find(
+                      (p) => p.angleId === currentAngle.id
+                    );
+                    if (!position) return null;
+                    return (
+                      <TourPointMarker
+                        key={tourPoint.id}
+                        tourPoint={tourPoint}
+                        position={position.position}
+                        isSelected={storeTourPointId === tourPoint.id}
+                        onClick={() => {
+                          selectTourPoint(tourPoint.id);
+                          setDrawingMode("none");
+                        }}
+                      />
+                    );
+                  })}
+            </FullViewportCanvas>
+
+            {/* Drawing Instructions Overlay */}
+            {drawingMode === "building" && selectedBuildingId && (
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-10">
+                <Pentagon className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  Click to add vertices. Click near start or double-click to
+                  close polygon. Press ESC to cancel.
+                </span>
+              </div>
+            )}
+
+            {/* Tour Point Instructions */}
+            {drawingMode === "tourPoint" && (
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-10">
+                <MapPin className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  Click on the image to place a street view tour point
+                </span>
+              </div>
+            )}
+
+            {/* No Building Selected Warning */}
+            {drawingMode === "building" && !selectedBuildingId && (
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-orange-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-10">
+                <span className="text-sm font-medium">
+                  ⚠️ Select a building from the sidebar first
+                </span>
+              </div>
+            )}
+
+            {/* Delete Hotspot Button */}
+            {selectedHotspotId && drawingMode === "none" && (
+              <div className="absolute bottom-4 right-4 z-10">
                 <button
-                  onClick={() => setIsAddTourPointOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  onClick={handleDeleteHotspot}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg"
+                  title="Delete hotspot"
                 >
-                  <Plus className="w-4 h-4" />
-                  Add Tour Point
+                  <Trash2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">Delete Hotspot</span>
                 </button>
               </div>
+            )}
 
-              <div className="overflow-y-auto p-4 max-h-64">
-                {tourPoints.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center mt-4">
-                    No tour points yet. Add one to start.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {tourPoints.map((tourPoint) => (
-                      <div
-                        key={tourPoint.id}
-                        className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                          storeTourPointId === tourPoint.id
-                            ? "border-green-500 bg-green-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                        onClick={() => selectTourPoint(tourPoint.id)}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {tourPoint.name}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {tourPoint.positions.length} position(s)
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditTourPoint(tourPoint);
-                              }}
-                              className="p-1 text-gray-400 hover:text-green-600 transition-colors"
-                              title="Edit tour point"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (
-                                  window.confirm(
-                                    `Delete tour point "${tourPoint.name}"? This will remove it from all angles.`
-                                  )
-                                ) {
-                                  deleteTourPoint(tourPoint.id);
-                                }
-                              }}
-                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                              title="Delete tour point"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            {/* Tour Point Actions */}
+            {storeTourPointId && drawingMode === "none" && (
+              <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
+                <button
+                  onClick={() => setIsPanoramicUploadOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
+                  title="Upload panoramic image"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span className="text-sm font-medium">Upload Panoramic</span>
+                </button>
+                <button
+                  onClick={async () => {
+                    if (
+                      confirm("Delete this tour point? This cannot be undone.")
+                    ) {
+                      try {
+                        await deleteTourPoint(storeTourPointId);
+                        selectTourPoint(null);
+                      } catch (error) {
+                        console.error("Failed to delete tour point:", error);
+                        alert(
+                          `Failed to delete tour point: ${
+                            error instanceof Error
+                              ? error.message
+                              : "Unknown error"
+                          }`
+                        );
+                      }
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg"
+                  title="Delete tour point"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">Delete Tour Point</span>
+                </button>
               </div>
-            </div>
+            )}
+          </>
+        ) : angles.length === 0 ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+            <Upload className="w-16 h-16 mb-4" />
+            <p className="text-lg mb-2">No angles uploaded</p>
+            <p className="text-sm">Click "Upload First Angle" to begin</p>
+          </div>
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+            <p className="text-lg mb-2">Select an angle</p>
+            <p className="text-sm">Choose an angle from the dropdown above</p>
           </div>
         )}
-
-        {/* Canvas Area */}
-        <div
-          className="flex-1 overflow-hidden relative bg-gray-100"
-          style={{ cursor: drawingMode !== "none" ? "crosshair" : "default" }}
-        >
-          {currentAngleImageUrl ? (
-            <>
-              <FullViewportCanvas
-                imageUrl={currentAngleImageUrl}
-                onCanvasReady={(stage) => {
-                  stageRef.current = stage;
-                }}
-              >
-                <BuildingHotspotTool
-                  hotspots={currentAngle?.hotspots || []}
-                  buildings={buildings}
-                  selectedBuildingId={selectedBuildingId}
-                  selectedHotspotId={selectedHotspotId}
-                  tempPoints={tempPoints}
-                  onSelect={(hotspotId) => setSelectedHotspotId(hotspotId)}
-                  onUpdateHotspot={handleUpdateHotspot}
-                  isDrawingMode={drawingMode === "building"}
-                />
-
-                {/* Tour Point Markers */}
-                {currentAngle &&
-                  tourPoints
-                    .filter((tp) => currentAngle.tourPointIds?.includes(tp.id))
-                    .map((tourPoint) => {
-                      const position = tourPoint.positions.find(
-                        (p) => p.angleId === currentAngle.id
-                      );
-                      if (!position) return null;
-                      return (
-                        <TourPointMarker
-                          key={tourPoint.id}
-                          tourPoint={tourPoint}
-                          position={position.position}
-                          isSelected={storeTourPointId === tourPoint.id}
-                          onClick={() => {
-                            selectTourPoint(tourPoint.id);
-                            setDrawingMode("none");
-                          }}
-                        />
-                      );
-                    })}
-              </FullViewportCanvas>
-
-              {/* Drawing Instructions Overlay */}
-              {drawingMode === "building" && selectedBuildingId && (
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-10">
-                  <Pentagon className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    Click to add vertices. Click near start or double-click to
-                    close polygon. Press ESC to cancel.
-                  </span>
-                </div>
-              )}
-
-              {/* Tour Point Instructions */}
-              {drawingMode === "tourPoint" && (
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-10">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    Click on the image to place a street view tour point
-                  </span>
-                </div>
-              )}
-
-              {/* No Building Selected Warning */}
-              {drawingMode === "building" && !selectedBuildingId && (
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-orange-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-10">
-                  <span className="text-sm font-medium">
-                    ⚠️ Select a building from the sidebar first
-                  </span>
-                </div>
-              )}
-
-              {/* Delete Hotspot Button */}
-              {selectedHotspotId && drawingMode === "none" && (
-                <div className="absolute bottom-4 right-4 z-10">
-                  <button
-                    onClick={handleDeleteHotspot}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg"
-                    title="Delete hotspot"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="text-sm font-medium">Delete Hotspot</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Tour Point Actions */}
-              {storeTourPointId && drawingMode === "none" && (
-                <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
-                  <button
-                    onClick={() => setIsPanoramicUploadOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
-                    title="Upload panoramic image"
-                  >
-                    <Upload className="w-4 h-4" />
-                    <span className="text-sm font-medium">
-                      Upload Panoramic
-                    </span>
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (
-                        confirm(
-                          "Delete this tour point? This cannot be undone."
-                        )
-                      ) {
-                        try {
-                          await deleteTourPoint(storeTourPointId);
-                          selectTourPoint(null);
-                        } catch (error) {
-                          console.error("Failed to delete tour point:", error);
-                          alert(
-                            `Failed to delete tour point: ${
-                              error instanceof Error
-                                ? error.message
-                                : "Unknown error"
-                            }`
-                          );
-                        }
-                      }
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg"
-                    title="Delete tour point"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="text-sm font-medium">
-                      Delete Tour Point
-                    </span>
-                  </button>
-                </div>
-              )}
-            </>
-          ) : angles.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-              <Upload className="w-16 h-16 mb-4" />
-              <p className="text-lg mb-2">No angles uploaded</p>
-              <p className="text-sm">Click "Upload First Angle" to begin</p>
-            </div>
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-              <p className="text-lg mb-2">Select an angle</p>
-              <p className="text-sm">Choose an angle from the dropdown above</p>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Upload Angle Modal */}

@@ -3,6 +3,7 @@
  * Main navigation hub for the admin configuration dashboard
  */
 
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Settings,
@@ -13,20 +14,74 @@ import {
   Layout,
   Video,
 } from "lucide-react";
+import { ProjectExportButton, ImportButton } from "../components/export";
+import { useProjectStore } from "../stores/projectStore";
 
 // ============================================================================
 // Component
 // ============================================================================
 
 export default function AdminDashboard() {
+  const { config, createProject, loadProject } = useProjectStore();
+
+  // Initialize default project on mount if none exists
+  useEffect(() => {
+    const initializeProject = async () => {
+      if (!config) {
+        try {
+          // Try to load from localStorage or create new
+          const savedProjectId = localStorage.getItem("currentProjectId");
+
+          if (savedProjectId) {
+            // Try to load saved project
+            try {
+              await loadProject(savedProjectId);
+            } catch (error) {
+              console.error("Failed to load saved project, creating new one");
+              await createDefaultProject();
+            }
+          } else {
+            // Create a new default project
+            await createDefaultProject();
+          }
+        } catch (error) {
+          console.error("Failed to initialize project:", error);
+        }
+      }
+    };
+
+    const createDefaultProject = async () => {
+      const newProject = await createProject({
+        name: "My Real Estate Project",
+        slug: "my-project",
+        developer: {
+          name: "Developer Name",
+          contact: {},
+        },
+        metadata: {},
+      });
+
+      // Save project ID to localStorage
+      localStorage.setItem("currentProjectId", newProject.id);
+    };
+
+    initializeProject();
+  }, [config, createProject, loadProject]);
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Admin Dashboard
-          </h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-4xl font-bold text-gray-900">
+              Admin Dashboard
+            </h1>
+            <div className="flex items-center gap-3">
+              <ImportButton />
+              <ProjectExportButton />
+            </div>
+          </div>
           <p className="text-lg text-gray-600">
             Configure your real estate project - models, maps, floor plans, and
             virtual tours

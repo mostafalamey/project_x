@@ -66,11 +66,6 @@ const navItems = [
     label: "Floor Plans",
     icon: Layout,
   },
-  {
-    path: "/admin/tours",
-    label: "Virtual Tours",
-    icon: Video,
-  },
 ];
 
 // ============================================================================
@@ -92,9 +87,10 @@ export default function AdminSidebar({
 
   return (
     <aside
-      className={`bg-gray-900 text-white flex flex-col transition-all duration-300 ${
+      className={`fixed left-0 top-0 h-screen bg-gray-900 text-white flex flex-col transition-all duration-300 ${
         isCollapsed ? "w-16" : "w-64"
       }`}
+      style={{ zIndex: 10 }}
     >
       {/* Logo / Title */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800">

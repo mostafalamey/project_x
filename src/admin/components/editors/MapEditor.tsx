@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useMapStore, type DrawingMode } from "../../stores/mapStore";
+import { useSidebar } from "../../contexts/SidebarContext";
 import { ImageDropzone } from "../upload";
 import {
   FullViewportCanvas,
@@ -46,6 +47,7 @@ interface MapEditorProps {
 // ============================================================================
 
 export default function MapEditor({ projectId }: MapEditorProps) {
+  const { sidebarWidth } = useSidebar();
   const {
     mapConfig,
     landmarks,
@@ -166,12 +168,13 @@ export default function MapEditor({ projectId }: MapEditorProps) {
         y: pointerPosition.y,
       };
 
-      // If clicking on the background (not a shape) in select mode, deselect landmark
+      // If clicking on the background (not a shape) in select mode, deselect landmark and path
       if (drawingMode === "none") {
         const clickedOnBackground =
           e.target.getClassName() === "Image" || e.target === stage;
         if (clickedOnBackground) {
           selectLandmark(null);
+          selectPath(null);
           return;
         }
       }
@@ -296,6 +299,7 @@ export default function MapEditor({ projectId }: MapEditorProps) {
     (landmarkId: string) => {
       if (drawingMode !== "path") {
         selectLandmark(landmarkId);
+        selectPath(null); // Deselect path when selecting landmark
         return;
       }
 
@@ -384,6 +388,17 @@ export default function MapEditor({ projectId }: MapEditorProps) {
       selectLandmark,
       projectId,
     ]
+  );
+
+  // Handle path selection (deselects landmarks when path is selected)
+  const handlePathSelect = useCallback(
+    (pathId: string | null) => {
+      selectPath(pathId);
+      if (pathId) {
+        selectLandmark(null); // Deselect landmark when selecting path
+      }
+    },
+    [selectPath, selectLandmark]
   );
 
   // Handle escape key to cancel drawing
@@ -528,9 +543,12 @@ export default function MapEditor({ projectId }: MapEditorProps) {
   const selectedPath = paths.find((p) => p.id === selectedPathId) || null;
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Toolbar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+    <div className="h-screen w-screen relative">
+      {/* Toolbar - Fixed overlay at top (accounting for sidebar) */}
+      <div
+        className="fixed top-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between"
+        style={{ left: `${sidebarWidth}px`, zIndex: 10 }}
+      >
         <div className="flex items-center gap-2">
           {/* Upload Button */}
           <button
@@ -633,10 +651,13 @@ export default function MapEditor({ projectId }: MapEditorProps) {
         </div>
       </div>
 
-      {/* Canvas Area */}
+      {/* Canvas Area - Full viewport */}
       <div
-        className="flex-1 overflow-hidden relative bg-gray-100"
-        style={{ cursor: drawingMode !== "none" ? "crosshair" : "default" }}
+        className="fixed inset-0"
+        style={{
+          cursor: drawingMode !== "none" ? "crosshair" : "default",
+          zIndex: 0,
+        }}
       >
         {mapImageUrl ? (
           <FullViewportCanvas
@@ -670,7 +691,7 @@ export default function MapEditor({ projectId }: MapEditorProps) {
               paths={paths}
               selectedPathId={selectedPathId}
               tempPathPoints={tempPathPoints}
-              onSelect={selectPath}
+              onSelect={handlePathSelect}
               onPathCreate={(fromId, toId) => {}}
               onPathUpdate={(pathId, newPathData) => {
                 updatePath(pathId, { pathData: newPathData });

@@ -7,6 +7,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useFloorsStore } from "../../stores/floorsStore";
 import { useBuildingsStore } from "../../stores/buildingsStore";
 import { useModelsStore } from "../../stores/modelsStore";
+import { useSidebar } from "../../contexts/SidebarContext";
 import { ImageDropzone } from "../upload";
 import { FullViewportCanvas } from "../canvas";
 import { imageRefToDataURL } from "../../utils/imageProcessing";
@@ -38,6 +39,7 @@ interface FloorEditorProps {
 // ============================================================================
 
 export default function FloorEditor({ projectId }: FloorEditorProps) {
+  const { sidebarWidth } = useSidebar();
   const {
     floors,
     selectedFloorId,
@@ -355,6 +357,28 @@ export default function FloorEditor({ projectId }: FloorEditorProps) {
     }
   };
 
+  // Handle unit polygon deletion (geometry only, keeps the unit)
+  const handleDeleteUnitPolygon = useCallback(async () => {
+    if (!selectedFloor || !selectedUnitId) return;
+
+    const unit = selectedFloor.units.find((u) => u.id === selectedUnitId);
+    if (!unit || unit.geometry.vertices.length === 0) return;
+
+    if (!window.confirm("Delete this unit polygon?")) {
+      return;
+    }
+
+    try {
+      await updateUnit(selectedFloor.id, selectedUnitId, {
+        geometry: { type: "polygon", vertices: [], closed: true },
+      });
+      selectUnit(null);
+    } catch (error) {
+      console.error("Failed to delete polygon:", error);
+      alert("Failed to delete polygon. Please try again.");
+    }
+  }, [selectedFloor, selectedUnitId, updateUnit, selectUnit]);
+
   // Handle unit vertex dragging
   const handleVertexDragMove = async (
     unitId: string,
@@ -520,10 +544,18 @@ export default function FloorEditor({ projectId }: FloorEditorProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectUnit]);
 
+  const internalSidebarWidth = selectedFloor && floorImageUrl ? 320 : 0; // w-80 = 320px
+
   return (
-    <div className="h-full flex flex-col">
-      {/* Toolbar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+    <div className="h-screen w-screen relative">
+      {/* Toolbar - Fixed overlay at top (starts after main sidebar) */}
+      <div
+        className="fixed top-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between"
+        style={{
+          zIndex: 10,
+          left: `${sidebarWidth}px`,
+        }}
+      >
         <div className="flex items-center gap-2">
           {/* Floor Selector */}
           <div className="flex items-center gap-2">
@@ -657,375 +689,403 @@ export default function FloorEditor({ projectId }: FloorEditorProps) {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar - Unit List */}
-        {selectedFloor && floorImageUrl && (
-          <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-            <div className="p-4">
-              {/* Building Info */}
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                  Building
-                </h3>
-                <div className="space-y-1 text-xs text-gray-600">
-                  <div>
-                    <span className="font-medium">ID:</span>{" "}
-                    {selectedFloor.buildingId}
-                  </div>
-                  <div>
-                    <span className="font-medium">Name:</span>{" "}
-                    {buildings.find((b) => b.id === selectedFloor.buildingId)
-                      ?.name || "Unknown"}
+      {/* Sidebar - Unit List (Fixed overlay on left, next to main sidebar) */}
+      {selectedFloor && floorImageUrl && (
+        <div
+          className="fixed top-16 bottom-0 w-80 bg-gray-400/70 backdrop-blur-md border-r border-gray-200 overflow-y-auto shadow-lg"
+          style={{ left: `${sidebarWidth}px`, zIndex: 15 }}
+        >
+          <div className="p-4">
+            {/* Building Info */}
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                Building
+              </h3>
+              <div className="space-y-1 text-xs text-gray-600">
+                <div>
+                  <span className="font-medium">ID:</span>{" "}
+                  {selectedFloor.buildingId}
+                </div>
+                <div>
+                  <span className="font-medium">Name:</span>{" "}
+                  {buildings.find((b) => b.id === selectedFloor.buildingId)
+                    ?.name || "Unknown"}
+                </div>
+              </div>
+            </div>
+
+            {/* Add Unit Button */}
+            <button
+              onClick={() => setIsAddUnitOpen(true)}
+              className="w-full mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Unit
+            </button>
+
+            {/* Overlap Warning */}
+            {overlappingUnits.length > 0 && (
+              <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <span className="text-orange-600 text-lg">⚠️</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-orange-900">
+                      Overlapping Units Detected
+                    </p>
+                    <p className="text-xs text-orange-700 mt-1">
+                      {overlappingUnits.length} unit
+                      {overlappingUnits.length > 1 ? "s" : ""}{" "}
+                      {overlappingUnits.length > 1 ? "have" : "has"} overlapping
+                      boundaries. Check units marked with ⚠️ below.
+                    </p>
                   </div>
                 </div>
               </div>
+            )}
 
-              {/* Add Unit Button */}
-              <button
-                onClick={() => setIsAddUnitOpen(true)}
-                className="w-full mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add Unit
-              </button>
-
-              {/* Overlap Warning */}
-              {overlappingUnits.length > 0 && (
-                <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <span className="text-orange-600 text-lg">⚠️</span>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-orange-900">
-                        Overlapping Units Detected
-                      </p>
-                      <p className="text-xs text-orange-700 mt-1">
-                        {overlappingUnits.length} unit
-                        {overlappingUnits.length > 1 ? "s" : ""}{" "}
-                        {overlappingUnits.length > 1 ? "have" : "has"}{" "}
-                        overlapping boundaries. Check units marked with ⚠️
-                        below.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Unit List */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Units
-                </h3>
-                {selectedFloor.units.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-8">
-                    No units added yet.
-                    <br />
-                    Click "Add Unit" to begin.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedFloor.units.map((unit) => {
-                      const model = models.find((m) => m.id === unit.modelId);
-                      const hasPolygon = unit.geometry.vertices.length > 0;
-                      const isOverlapping = overlappingUnits.includes(unit.id);
-                      return (
-                        <div
-                          key={unit.id}
-                          className={`p-3 border rounded-lg transition-colors cursor-pointer ${
-                            selectedUnitId === unit.id
-                              ? "border-blue-500 bg-blue-50"
-                              : isOverlapping
-                              ? "border-orange-300 bg-orange-50"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                          onClick={() => selectUnit(unit.id)}
-                        >
-                          {/* Unit Header with Title and Action Buttons */}
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 flex-1">
-                              <div className="font-medium text-gray-900">
-                                Unit {unit.unitNumber}
-                              </div>
-                              {!hasPolygon && (
-                                <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
-                                  No polygon
-                                </span>
-                              )}
-                              {isOverlapping && (
-                                <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-800 rounded flex items-center gap-1">
-                                  ⚠️ Overlap
-                                </span>
-                              )}
+            {/* Unit List */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Units
+              </h3>
+              {selectedFloor.units.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-8">
+                  No units added yet.
+                  <br />
+                  Click "Add Unit" to begin.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {selectedFloor.units.map((unit) => {
+                    const model = models.find((m) => m.id === unit.modelId);
+                    const hasPolygon = unit.geometry.vertices.length > 0;
+                    const isOverlapping = overlappingUnits.includes(unit.id);
+                    return (
+                      <div
+                        key={unit.id}
+                        className={`p-3 border rounded-lg transition-colors cursor-pointer ${
+                          selectedUnitId === unit.id
+                            ? "border-blue-500 bg-blue-50"
+                            : isOverlapping
+                            ? "border-orange-300 bg-orange-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        onClick={() => selectUnit(unit.id)}
+                      >
+                        {/* Unit Header with Title and Action Buttons */}
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <div className="font-medium text-gray-900">
+                              Unit {unit.unitNumber}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditUnit(unit);
-                                }}
-                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="Edit unit"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteUnit(unit.id);
-                                }}
-                                className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                title="Delete unit"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
+                            {!hasPolygon && (
+                              <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
+                                No polygon
+                              </span>
+                            )}
+                            {isOverlapping && (
+                              <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-800 rounded flex items-center gap-1">
+                                ⚠️ Overlap
+                              </span>
+                            )}
                           </div>
-
-                          {/* Unit Details */}
-                          <div>
-                            <div className="text-xs text-gray-600 space-y-0.5">
-                              {model ? (
-                                <>
-                                  <div>
-                                    <span className="font-medium">Model:</span>{" "}
-                                    {model.id}
-                                  </div>
-                                  <div className="flex gap-3">
-                                    {model.bedrooms !== undefined && (
-                                      <span>🛏️ {model.bedrooms} bed</span>
-                                    )}
-                                    {model.bathrooms !== undefined && (
-                                      <span>🚿 {model.bathrooms} bath</span>
-                                    )}
-                                  </div>
-                                  {model.areaM2 && (
-                                    <div>📏 {model.areaM2} m²</div>
-                                  )}
-                                </>
-                              ) : (
-                                <div className="text-gray-400">
-                                  Unknown Model
-                                </div>
-                              )}
-                            </div>
-                            <div className="text-xs text-gray-400 mt-1.5">
-                              {unit.availability === "available" &&
-                                "🟢 Available"}
-                              {unit.availability === "sold" && "🔴 Sold"}
-                              {unit.availability === "reserved" &&
-                                "🟡 Reserved"}
-                            </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditUnit(unit);
+                              }}
+                              className={`p-1.5 ${
+                                selectedUnitId === unit.id
+                                  ? "text-blue-600"
+                                  : "text-gray-200"
+                              } hover:bg-blue-50 hover:text-blue-600 rounded transition-colors`}
+                              title="Edit unit"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteUnit(unit.id);
+                              }}
+                              className={`p-1.5 ${
+                                selectedUnitId === unit.id
+                                  ? "text-red-600"
+                                  : "text-gray-200"
+                              } hover:bg-red-50 hover:text-red-600 rounded transition-colors`}
+                              title="Delete unit"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Canvas Area */}
-        <div
-          className="flex-1 overflow-hidden relative bg-gray-100"
-          style={{ cursor: drawingMode !== "none" ? "crosshair" : "default" }}
-        >
-          {floors.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-              <Building2 className="w-16 h-16 mb-4" />
-              <p className="text-lg mb-2 font-semibold">No floors exist</p>
-              <p className="text-sm mb-4 text-center max-w-md">
-                Floors are created in the Building section by drawing hotspots
-                on building exterior images.
-              </p>
-              <button
-                onClick={() => {
-                  // Navigate to Buildings tab
-                  const buildingsTab = document.querySelector(
-                    '[role="tab"][aria-label="Buildings"]'
-                  ) as HTMLElement;
-                  if (buildingsTab) buildingsTab.click();
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Building2 className="w-4 h-4" />
-                Go to Buildings Section
-              </button>
-            </div>
-          ) : !selectedFloor ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-              <Layers className="w-16 h-16 mb-4" />
-              <p className="text-lg mb-2">No floor selected</p>
-              <p className="text-sm">
-                Select a floor from the dropdown to begin
-              </p>
-            </div>
-          ) : !floorImageUrl ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-              <Upload className="w-16 h-16 mb-4" />
-              <p className="text-lg mb-2">No floor plan image uploaded</p>
-              <p className="text-sm">Click "Upload Image" to begin</p>
-            </div>
-          ) : (
-            <FullViewportCanvas
-              imageUrl={floorImageUrl}
-              onCanvasReady={(stage) => {
-                stageRef.current = stage;
-              }}
-            >
-              <Group>
-                {/* Existing unit hotspots */}
-                {selectedFloor.units
-                  .filter((unit) => unit.geometry)
-                  .map((unit) => {
-                    const isSelected = selectedUnitId === unit.id;
-                    const isOverlapping = overlappingUnits.includes(unit.id);
-                    const points = unit.geometry!.vertices.flatMap((p) => [
-                      p.x,
-                      p.y,
-                    ]);
-
-                    return (
-                      <Group key={unit.id}>
-                        {/* Polygon fill */}
-                        <Line
-                          points={points}
-                          closed
-                          fill={
-                            isSelected
-                              ? "rgba(59, 130, 246, 0.3)"
-                              : isOverlapping
-                              ? "rgba(251, 146, 60, 0.2)"
-                              : "rgba(139, 92, 246, 0.2)"
-                          }
-                          stroke={
-                            isSelected
-                              ? "#3b82f6"
-                              : isOverlapping
-                              ? "#f97316"
-                              : "#8b5cf6"
-                          }
-                          strokeWidth={isOverlapping ? 3 : 2}
-                          onClick={() => selectUnit(unit.id)}
-                          onTap={() => selectUnit(unit.id)}
-                        />
-
-                        {/* Unit label */}
-                        <Text
-                          x={
-                            unit.geometry!.vertices.reduce(
-                              (sum, v) => sum + v.x,
-                              0
-                            ) / unit.geometry!.vertices.length
-                          }
-                          y={
-                            unit.geometry!.vertices.reduce(
-                              (sum, v) => sum + v.y,
-                              0
-                            ) / unit.geometry!.vertices.length
-                          }
-                          text={
-                            isOverlapping
-                              ? `⚠️ ${unit.unitNumber}`
-                              : unit.unitNumber
-                          }
-                          fontSize={14}
-                          fill={
-                            isSelected
-                              ? "#1e40af"
-                              : isOverlapping
-                              ? "#c2410c"
-                              : "#6d28d9"
-                          }
-                          fontStyle="bold"
-                          align="center"
-                          offsetX={isOverlapping ? 30 : 20}
-                        />
-
-                        {/* Draggable vertices (only for selected unit) */}
-                        {isSelected &&
-                          unit.geometry!.vertices.map((vertex, idx) => (
-                            <Circle
-                              key={idx}
-                              x={vertex.x}
-                              y={vertex.y}
-                              radius={6}
-                              fill="#3b82f6"
-                              stroke="#fff"
-                              strokeWidth={2}
-                              draggable
-                              onDragMove={(e) => {
-                                const newX = e.target.x();
-                                const newY = e.target.y();
-                                handleVertexDragMove(unit.id, idx, newX, newY);
-                              }}
-                              onMouseEnter={(e) => {
-                                const container = e.target
-                                  .getStage()
-                                  ?.container();
-                                if (container) {
-                                  container.style.cursor = "move";
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                const container = e.target
-                                  .getStage()
-                                  ?.container();
-                                if (container) {
-                                  container.style.cursor = "default";
-                                }
-                              }}
-                            />
-                          ))}
-                      </Group>
+                        {/* Unit Details */}
+                        <div>
+                          <div
+                            className={`text-xs ${
+                              selectedUnitId === unit.id
+                                ? "text-gray-800"
+                                : "text-gray-200"
+                            } space-y-0.5`}
+                          >
+                            {model ? (
+                              <>
+                                <div>
+                                  <span className="font-medium">Model:</span>{" "}
+                                  {model.id}
+                                </div>
+                                <div className="flex gap-3">
+                                  {model.bedrooms !== undefined && (
+                                    <span>🛏️ {model.bedrooms} bed</span>
+                                  )}
+                                  {model.bathrooms !== undefined && (
+                                    <span>🚿 {model.bathrooms} bath</span>
+                                  )}
+                                </div>
+                                {model.areaM2 && (
+                                  <div>📏 {model.areaM2} m²</div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="text-gray-400">Unknown Model</div>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1.5">
+                            {unit.availability === "available" &&
+                              "🟢 Available"}
+                            {unit.availability === "sold" && "🔴 Sold"}
+                            {unit.availability === "reserved" && "🟡 Reserved"}
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
-
-                {/* Temporary drawing points */}
-                {drawingMode === "polygon" && tempPoints.length > 0 && (
-                  <Group>
-                    {/* Draw lines between points */}
-                    <Line
-                      points={tempPoints.flatMap((p) => [p.x, p.y])}
-                      stroke="#3b82f6"
-                      strokeWidth={2}
-                      dash={[5, 5]}
-                    />
-
-                    {/* Draw points */}
-                    {tempPoints.map((point, idx) => (
-                      <Circle
-                        key={idx}
-                        x={point.x}
-                        y={point.y}
-                        radius={5}
-                        fill={idx === 0 ? "#10b981" : "#3b82f6"}
-                        stroke="#fff"
-                        strokeWidth={2}
-                      />
-                    ))}
-
-                    {/* Line from last point to first (if enough points) */}
-                    {tempPoints.length >= 3 && (
-                      <Line
-                        points={[
-                          tempPoints[tempPoints.length - 1].x,
-                          tempPoints[tempPoints.length - 1].y,
-                          tempPoints[0].x,
-                          tempPoints[0].y,
-                        ]}
-                        stroke="#10b981"
-                        strokeWidth={2}
-                        dash={[10, 5]}
-                      />
-                    )}
-                  </Group>
-                )}
-              </Group>
-            </FullViewportCanvas>
-          )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Canvas Area - Full viewport */}
+      <div
+        className="fixed inset-0"
+        style={{
+          cursor: drawingMode !== "none" ? "crosshair" : "default",
+          zIndex: 0,
+        }}
+      >
+        {floors.length === 0 ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+            <Building2 className="w-16 h-16 mb-4" />
+            <p className="text-lg mb-2 font-semibold">No floors exist</p>
+            <p className="text-sm mb-4 text-center max-w-md">
+              Floors are created in the Building section by drawing hotspots on
+              building exterior images.
+            </p>
+            <button
+              onClick={() => {
+                // Navigate to Buildings tab
+                const buildingsTab = document.querySelector(
+                  '[role="tab"][aria-label="Buildings"]'
+                ) as HTMLElement;
+                if (buildingsTab) buildingsTab.click();
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <Building2 className="w-4 h-4" />
+              Go to Buildings Section
+            </button>
+          </div>
+        ) : !selectedFloor ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+            <Layers className="w-16 h-16 mb-4" />
+            <p className="text-lg mb-2">No floor selected</p>
+            <p className="text-sm">Select a floor from the dropdown to begin</p>
+          </div>
+        ) : !floorImageUrl ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+            <Upload className="w-16 h-16 mb-4" />
+            <p className="text-lg mb-2">No floor plan image uploaded</p>
+            <p className="text-sm">Click "Upload Image" to begin</p>
+          </div>
+        ) : (
+          <FullViewportCanvas
+            imageUrl={floorImageUrl}
+            onCanvasReady={(stage) => {
+              stageRef.current = stage;
+            }}
+          >
+            <Group>
+              {/* Existing unit hotspots */}
+              {selectedFloor.units
+                .filter((unit) => unit.geometry)
+                .map((unit) => {
+                  const isSelected = selectedUnitId === unit.id;
+                  const isOverlapping = overlappingUnits.includes(unit.id);
+                  const points = unit.geometry!.vertices.flatMap((p) => [
+                    p.x,
+                    p.y,
+                  ]);
+
+                  return (
+                    <Group key={unit.id}>
+                      {/* Polygon fill */}
+                      <Line
+                        points={points}
+                        closed
+                        fill={
+                          isSelected
+                            ? "rgba(34, 197, 94, 0.3)"
+                            : isOverlapping
+                            ? "rgba(251, 146, 60, 0.2)"
+                            : "rgba(139, 92, 246, 0.2)"
+                        }
+                        stroke={
+                          isSelected
+                            ? "#22c55e"
+                            : isOverlapping
+                            ? "#f97316"
+                            : "#8b5cf6"
+                        }
+                        strokeWidth={isOverlapping ? 3 : 2}
+                        onClick={() => selectUnit(unit.id)}
+                        onTap={() => selectUnit(unit.id)}
+                      />
+
+                      {/* Unit label */}
+                      <Text
+                        x={
+                          unit.geometry!.vertices.reduce(
+                            (sum, v) => sum + v.x,
+                            0
+                          ) / unit.geometry!.vertices.length
+                        }
+                        y={
+                          unit.geometry!.vertices.reduce(
+                            (sum, v) => sum + v.y,
+                            0
+                          ) / unit.geometry!.vertices.length
+                        }
+                        text={
+                          isOverlapping
+                            ? `⚠️ ${unit.unitNumber}`
+                            : unit.unitNumber
+                        }
+                        fontSize={14}
+                        fill={
+                          isSelected
+                            ? "#16a34a"
+                            : isOverlapping
+                            ? "#c2410c"
+                            : "#6d28d9"
+                        }
+                        fontStyle="bold"
+                        align="center"
+                        offsetX={isOverlapping ? 30 : 20}
+                      />
+
+                      {/* Draggable vertices (only for selected unit) */}
+                      {isSelected &&
+                        unit.geometry!.vertices.map((vertex, idx) => (
+                          <Circle
+                            key={idx}
+                            x={vertex.x}
+                            y={vertex.y}
+                            radius={6}
+                            fill="#22c55e"
+                            stroke="#fff"
+                            strokeWidth={2}
+                            draggable
+                            onDragMove={(e) => {
+                              const newX = e.target.x();
+                              const newY = e.target.y();
+                              handleVertexDragMove(unit.id, idx, newX, newY);
+                            }}
+                            onMouseEnter={(e) => {
+                              const container = e.target
+                                .getStage()
+                                ?.container();
+                              if (container) {
+                                container.style.cursor = "move";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              const container = e.target
+                                .getStage()
+                                ?.container();
+                              if (container) {
+                                container.style.cursor = "default";
+                              }
+                            }}
+                          />
+                        ))}
+                    </Group>
+                  );
+                })}
+
+              {/* Temporary drawing points */}
+              {drawingMode === "polygon" && tempPoints.length > 0 && (
+                <Group>
+                  {/* Draw lines between points */}
+                  <Line
+                    points={tempPoints.flatMap((p) => [p.x, p.y])}
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    dash={[5, 5]}
+                  />
+
+                  {/* Draw points */}
+                  {tempPoints.map((point, idx) => (
+                    <Circle
+                      key={idx}
+                      x={point.x}
+                      y={point.y}
+                      radius={5}
+                      fill={idx === 0 ? "#10b981" : "#3b82f6"}
+                      stroke="#fff"
+                      strokeWidth={2}
+                    />
+                  ))}
+
+                  {/* Line from last point to first (if enough points) */}
+                  {tempPoints.length >= 3 && (
+                    <Line
+                      points={[
+                        tempPoints[tempPoints.length - 1].x,
+                        tempPoints[tempPoints.length - 1].y,
+                        tempPoints[0].x,
+                        tempPoints[0].y,
+                      ]}
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      dash={[10, 5]}
+                    />
+                  )}
+                </Group>
+              )}
+            </Group>
+          </FullViewportCanvas>
+        )}
+
+        {/* Delete Unit Polygon Button - Shows when unit with polygon is selected */}
+        {selectedFloor &&
+          selectedUnitId &&
+          selectedFloor.units.find(
+            (u) => u.id === selectedUnitId && u.geometry.vertices.length > 0
+          ) &&
+          drawingMode === "none" && (
+            <button
+              onClick={handleDeleteUnitPolygon}
+              className="absolute bottom-4 right-4 z-10 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 shadow-lg"
+              title="Delete unit polygon"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Polygon
+            </button>
+          )}
       </div>
 
       {/* Add Unit Modal */}

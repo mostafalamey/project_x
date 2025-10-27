@@ -3,9 +3,10 @@
  * Main layout wrapper with sidebar and content area
  */
 
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
+import { useSidebar } from "../../contexts/SidebarContext";
 
 // ============================================================================
 // Component Props
@@ -15,6 +16,7 @@ interface AdminLayoutProps {
   children: ReactNode;
   showSidebar?: boolean;
   showHeader?: boolean;
+  fullViewport?: boolean; // New prop for full-viewport canvas pages
 }
 
 // ============================================================================
@@ -25,16 +27,37 @@ export default function AdminLayout({
   children,
   showSidebar = true,
   showHeader = true,
+  fullViewport = false,
 }: AdminLayoutProps) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { isCollapsed, setIsCollapsed } = useSidebar();
 
+  // For full viewport mode (Map, Master Plan, Building, Floor editors)
+  if (fullViewport) {
+    return (
+      <>
+        {/* Sidebar - Fixed overlay */}
+        {showSidebar && (
+          <AdminSidebar
+            isCollapsed={isCollapsed}
+            onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+          />
+        )}
+
+        {/* Full viewport content (canvas fills entire screen) */}
+        {/* Note: Header is hidden in full viewport mode - canvas editors have their own toolbars */}
+        {children}
+      </>
+    );
+  }
+
+  // Regular layout mode (Dashboard, Settings, etc.)
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* Sidebar */}
       {showSidebar && (
         <AdminSidebar
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          isCollapsed={isCollapsed}
+          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         />
       )}
 

@@ -14,7 +14,7 @@ export default function BuildingPage() {
   const projectId = "default"; // TODO: Get from project store
 
   return (
-    <AdminLayout>
+    <AdminLayout fullViewport={true}>
       <BuildingEditor projectId={projectId} />
     </AdminLayout>
   );

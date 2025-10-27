@@ -109,7 +109,8 @@ export default function FullViewportCanvas({
   return (
     <div
       ref={containerRef}
-      className="w-full h-full bg-gray-900 relative overflow-hidden"
+      className="fixed inset-0 bg-gray-900 overflow-hidden"
+      style={{ zIndex: 0 }}
     >
       {dimensions.width > 0 && dimensions.height > 0 && (
         <Stage

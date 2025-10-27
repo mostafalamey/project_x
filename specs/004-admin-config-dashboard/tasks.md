@@ -250,7 +250,7 @@ Static web app structure:
 - [x] T137 [US4] Implement building export format conversion with FloorReference array
 - [x] T138 [US4] Create Express server endpoint POST /api/export/building/:buildingId
 - [x] T139 [US4] Add "Export Building" button that saves to buildings/[buildingId]/ via backend API
-- [ ] T140 [US4] Test that floors created in Building view appear in Floor section
+- [x] T140 [US4] Test that floors created in Building view appear in Floor section
 
 **Checkpoint**: At this point, User Story 4 should be fully functional and testable independently. Building configuration with floors complete, floors propagate to Floor section.
 
@@ -299,25 +299,25 @@ Static web app structure:
 
 ### Implementation for User Story 6
 
-- [ ] T163 [P] [US6] Create TourSceneEditor component in src/admin/components/editors/TourSceneEditor.tsx using React Photo Sphere Viewer
-- [ ] T164 [US6] Add tour section to ModelsPage: "Virtual Tour" tab for each model
-- [ ] T165 [US6] Create tour store or extend modelsStore with tour actions: createTour, addScene, deleteScene, addHotspot, updateHotspot, deleteHotspot, setStartingScene
-- [ ] T166 [US6] Implement panoramic scene upload: equirectangular image validation
-- [ ] T167 [US6] Integrate React Photo Sphere Viewer to display panoramic scene
-- [ ] T168 [US6] Add scene list sidebar with thumbnail previews
-- [ ] T169 [US6] Implement hotspot placement: click on panorama to add hotspot at yaw/pitch position
-- [ ] T170 [US6] Show hotspot creation modal: select target scene, enter tooltip text, choose icon type
-- [ ] T171 [US6] Validate hotspot position: yaw [-180, 180], pitch [-90, 90]
-- [ ] T172 [US6] Allow dragging hotspots in panorama to reposition
-- [ ] T173 [US6] Add hotspot properties editor: target scene dropdown, tooltip, icon selection
-- [ ] T174 [US6] Implement delete hotspot functionality
-- [ ] T175 [US6] Mark starting scene: radio button or star icon in scene list
-- [ ] T176 [US6] Add tour preview mode: navigate through scenes by clicking hotspots
-- [ ] T177 [US6] Validate tour graph: all scenes reachable from starting scene (connectivity check)
-- [ ] T178 [US6] Implement tour export format conversion with TourScene array
-- [ ] T179 [US6] Create Express server endpoint POST /api/export/tour/:modelId
-- [ ] T180 [US6] Add "Export Tour" button that saves to tours/[modelId]/ via backend API
-- [ ] T181 [US6] Test tour JSON export format matches existing viewer schema
+- [x] T163 [P] [US6] Create TourSceneEditor component in src/admin/components/editors/TourSceneEditor.tsx using React Photo Sphere Viewer
+- [x] T164 [US6] Add tour section to ModelsPage: "Virtual Tour" tab for each model
+- [x] T165 [US6] Create tour store or extend modelsStore with tour actions: createTour, addScene, deleteScene, addHotspot, updateHotspot, deleteHotspot, setStartingScene
+- [x] T166 [US6] Implement panoramic scene upload: equirectangular image validation
+- [x] T167 [US6] Integrate React Photo Sphere Viewer to display panoramic scene
+- [x] T168 [US6] Add scene list sidebar with thumbnail previews
+- [x] T169 [US6] Implement hotspot placement: click on panorama to add hotspot at yaw/pitch position
+- [x] T170 [US6] Show hotspot creation modal: select target scene, enter tooltip text, choose icon type
+- [x] T171 [US6] Validate hotspot position: yaw [-180, 180], pitch [-90, 90]
+- [x] T172 [US6] Allow dragging hotspots in panorama to reposition
+- [x] T173 [US6] Add hotspot properties editor: target scene dropdown, tooltip, icon selection
+- [x] T174 [US6] Implement delete hotspot functionality
+- [x] T175 [US6] Mark starting scene: radio button or star icon in scene list
+- [x] T176 [US6] Add tour preview mode: navigate through scenes by clicking hotspots
+- [x] T177 [US6] Validate tour graph: all scenes reachable from starting scene (connectivity check)
+- [x] T178 [US6] Implement tour export format conversion with TourScene array
+- [x] T179 [US6] Create Express server endpoint POST /api/export/tour/:modelId
+- [x] T180 [US6] Add "Export Tour" button that saves to tours/[modelId]/ via backend API
+- [x] T181 [US6] Test tour JSON export format matches existing viewer schema
 
 **Checkpoint**: At this point, User Story 6 should be fully functional and testable independently. Virtual tour editor complete.
 
@@ -331,21 +331,21 @@ Static web app structure:
 
 ### Implementation for User Story 7
 
-- [ ] T182 [P] [US7] Add viewport scaling logic to FullViewportCanvas: scale image to fill 100vw × 100vh maintaining aspect ratio
-- [ ] T183 [P] [US7] Set FullViewportCanvas position: fixed with z-index: 0
-- [ ] T184 [P] [US7] Ensure all overlay components use fixed/absolute positioning with higher z-index (10+)
-- [ ] T185 [P] [US7] Update AdminSidebar positioning: fixed left with z-index: 10
-- [ ] T186 [P] [US7] Update ToolbarOverlay positioning: fixed top-right with z-index: 10
-- [ ] T187 [P] [US7] Update PropertiesPanel positioning: fixed right with z-index: 20
-- [ ] T188 [P] [US7] Update StatusBar positioning: fixed bottom with z-index: 10
-- [ ] T189 [US7] Test Map section: image fills viewport, overlays don't cause layout shifts
-- [ ] T190 [US7] Test Master Plan section: angle images fill viewport, angle switcher is overlay
-- [ ] T191 [US7] Test Building section: exterior image fills viewport, floor list is overlay
-- [ ] T192 [US7] Test Floor section: floor plan fills viewport, unit list is overlay
-- [ ] T193 [US7] Add viewport resize handler: rescale canvas on window resize
-- [ ] T194 [US7] Implement overlay dismiss on click outside (for PropertiesPanel)
-- [ ] T195 [US7] Add overlay minimize/maximize controls
-- [ ] T196 [US7] Test at minimum viewport size (1024px × 768px)
+- [x] T182 [P] [US7] Add viewport scaling logic to FullViewportCanvas: scale image to fill 100vw × 100vh maintaining aspect ratio
+- [x] T183 [P] [US7] Set FullViewportCanvas position: fixed with z-index: 0
+- [x] T184 [P] [US7] Ensure all overlay components use fixed/absolute positioning with higher z-index (10+)
+- [x] T185 [P] [US7] Update AdminSidebar positioning: fixed left with z-index: 10
+- [x] T186 [P] [US7] Update ToolbarOverlay positioning: fixed top-right with z-index: 10
+- [x] T187 [P] [US7] Update PropertiesPanel positioning: fixed right with z-index: 20
+- [x] T188 [P] [US7] Update StatusBar positioning: fixed bottom with z-index: 10
+- [x] T189 [US7] Test Map section: image fills viewport, overlays don't cause layout shifts
+- [x] T190 [US7] Test Master Plan section: angle images fill viewport, angle switcher is overlay
+- [x] T191 [US7] Test Building section: exterior image fills viewport, floor list is overlay
+- [x] T192 [US7] Test Floor section: floor plan fills viewport, unit list is overlay
+- [x] T193 [US7] Add viewport resize handler: rescale canvas on window resize
+- [x] T194 [US7] Implement overlay dismiss on click outside (for PropertiesPanel)
+- [x] T195 [US7] Add overlay minimize/maximize controls
+- [x] T196 [US7] Test at minimum viewport size (1024px × 768px)
 
 **Checkpoint**: At this point, User Story 7 should be fully functional and testable independently. All sections maintain full-viewport canvas with proper overlay positioning.
 
@@ -359,27 +359,27 @@ Static web app structure:
 
 ### Implementation for User Story 8
 
-- [ ] T197 [US8] Implement autosave trigger: use useAutosave hook with 30s debounce across all stores
-- [ ] T198 [P] [US8] Create AutosaveIndicator component in src/admin/components/export/AutosaveIndicator.tsx
-- [ ] T199 [US8] Add autosave status to AdminHeader: "Saved at [timestamp]" or "Saving..." with icon
+- [x] T197 [US8] Implement autosave trigger: use useAutosave hook with 30s debounce across all stores
+- [x] T198 [P] [US8] Create AutosaveIndicator component in src/admin/components/export/AutosaveIndicator.tsx
+- [x] T199 [US8] Add autosave status to AdminHeader: "Saved at [timestamp]" or "Saving..." with icon
 - [ ] T200 [US8] Store autosave snapshots in IndexedDB autosave table with timestamp
 - [ ] T201 [US8] Implement restore prompt on page load: check for unsaved changes, ask to restore or discard
-- [ ] T202 [P] [US8] Create ZIP generator service in src/admin/services/export/zipGenerator.ts using JSZip
-- [ ] T203 [US8] Implement full project export: aggregate all JSON files (project, models, landmarks, masterplan, buildings, floors, tours)
-- [ ] T204 [US8] Add image references to ZIP: copy images from IndexedDB to images/ folder in ZIP
-- [ ] T205 [US8] Generate project structure in ZIP: config/ and images/ folders
-- [ ] T206 [US8] Add README.md to ZIP export with project metadata
-- [ ] T207 [US8] Implement ZIP download using FileSaver.js: filename format "[projectName]-export.zip"
-- [ ] T208 [US8] Add "Export Project" button to AdminDashboard and AdminHeader
-- [ ] T209 [P] [US8] Create ZIP extractor service in src/admin/services/import/zipExtractor.ts
-- [ ] T210 [P] [US8] Create config validator service in src/admin/services/import/configValidator.ts
-- [ ] T211 [P] [US8] Create ImportButton component in src/admin/components/export/ImportButton.tsx
-- [ ] T212 [US8] Implement ZIP file selection and extraction
-- [ ] T213 [US8] Parse extracted JSON files and validate against schemas
-- [ ] T214 [US8] Display validation errors with detailed field-level messages
-- [ ] T215 [US8] Load validated configuration into stores
-- [ ] T216 [US8] Extract images from ZIP and store in IndexedDB
-- [ ] T217 [US8] Add "Import Project" functionality to AdminDashboard
+- [x] T202 [P] [US8] Create ZIP generator service in src/admin/services/export/zipGenerator.ts using JSZip
+- [x] T203 [US8] Implement full project export: aggregate all JSON files (project, models, landmarks, masterplan, buildings, floors, tours)
+- [x] T204 [US8] Add image references to ZIP: copy images from IndexedDB to images/ folder in ZIP
+- [x] T205 [US8] Generate project structure in ZIP: config/ and images/ folders
+- [x] T206 [US8] Add README.md to ZIP export with project metadata
+- [x] T207 [US8] Implement ZIP download using FileSaver.js: filename format "[projectName]-export.zip"
+- [x] T208 [US8] Add "Export Project" button to AdminDashboard and AdminHeader
+- [x] T209 [P] [US8] Create ZIP extractor service in src/admin/services/import/zipExtractor.ts
+- [x] T210 [P] [US8] Create config validator service in src/admin/services/import/configValidator.ts
+- [x] T211 [P] [US8] Create ImportButton component in src/admin/components/export/ImportButton.tsx
+- [x] T212 [US8] Implement ZIP file selection and extraction
+- [x] T213 [US8] Parse extracted JSON files and validate against schemas
+- [x] T214 [US8] Display validation errors with detailed field-level messages
+- [x] T215 [US8] Load validated configuration into stores
+- [x] T216 [US8] Extract images from ZIP and store in IndexedDB
+- [x] T217 [US8] Add "Import Project" functionality to AdminDashboard
 - [ ] T218 [US8] Implement browser storage quota check: warn when approaching limit
 - [ ] T219 [US8] Add storage quota warning modal with export/clear options
 - [ ] T220 [US8] Test full export/import cycle: export project, import into fresh instance, verify data integrity

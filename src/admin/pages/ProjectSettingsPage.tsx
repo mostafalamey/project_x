@@ -175,7 +175,7 @@ export default function ProjectSettingsPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-6 ml-64">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">

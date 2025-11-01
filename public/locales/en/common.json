@@ -48,13 +48,6 @@
         "location": "Location",
         "details": "Details"
     },
-    "themeToggle": {
-        "ariaLabel": "Switch to {{mode}} mode",
-        "modes": {
-            "light": "light",
-            "dark": "dark"
-        }
-    },
     "languageSwitcher": {
         "ariaLabel": "Select language",
         "currentLanguage": "Current language"
@@ -115,6 +108,6 @@
     },
     "buildingNames": {
         "B-11": "North Tower",
-        "A-12": "South Tower"
+        "A-12": "Residence"
     }
 }

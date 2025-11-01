@@ -1,24 +1,16 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "./hooks/useTheme";
 import { DEFAULT_LANGUAGE, isRTL, type LanguageCode } from "./i18n";
 import { AppRouter } from "./routes";
 
 const App = () => {
-  const { resolvedTheme } = useTheme();
   const { i18n } = useTranslation();
 
-  // Apply theme class to html element
+  // Apply dark theme (always on)
   useEffect(() => {
-    const root = document.documentElement;
-
-    if (resolvedTheme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  }, [resolvedTheme]);
+    document.documentElement.classList.add("dark");
+  }, []);
 
   // Apply language direction and lang attribute
   useEffect(() => {

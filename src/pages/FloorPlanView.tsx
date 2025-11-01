@@ -799,8 +799,16 @@ export const FloorPlanView = () => {
                     >
                       <Tooltip
                         title={hoveredUnit.tooltip.modelId}
-                        content={`${hoveredUnit.tooltip.areaM2} m^2 · ${hoveredUnit.tooltip.bedrooms} bed · ${hoveredUnit.tooltip.bathrooms} bath`}
-                        footer={`Status: ${hoveredUnit.tooltip.availability}`}
+                        content={t("floorPlanView.tooltip.unitSummary", {
+                          area: hoveredUnit.tooltip.areaM2,
+                          bedrooms: hoveredUnit.tooltip.bedrooms,
+                          bathrooms: hoveredUnit.tooltip.bathrooms,
+                        })}
+                        footer={t("floorPlanView.tooltip.status", {
+                          status: t(
+                            `common:availability.${hoveredUnit.tooltip.availability}`
+                          ),
+                        })}
                       />
                     </foreignObject>
                   </motion.g>

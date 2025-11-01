@@ -824,13 +824,17 @@ export const MasterPlanView = () => {
 
     if (hoveredBuildingId && activeStatusBuilding) {
       return t("masterPlanView.statusMessages.previewingBuilding", {
-        name: activeStatusBuilding.name,
+        name: t(`common:buildingNames.${activeStatusBuilding.id}`, {
+          defaultValue: activeStatusBuilding.name,
+        }),
       });
     }
 
     if (selectedBuildingId && activeStatusBuilding) {
       return t("masterPlanView.statusMessages.launchingBuilding", {
-        name: activeStatusBuilding.name,
+        name: t(`common:buildingNames.${activeStatusBuilding.id}`, {
+          defaultValue: activeStatusBuilding.name,
+        }),
       });
     }
 
@@ -1127,8 +1131,16 @@ export const MasterPlanView = () => {
               >
                 <Tooltip
                   title={activeStatusBuilding.id}
-                  content={activeStatusBuilding.name}
-                  footer={`${activeStatusBuilding.summary.totalFloors} floors · ${activeStatusBuilding.summary.availableUnits} units available`}
+                  content={t(
+                    `common:buildingNames.${activeStatusBuilding.id}`,
+                    {
+                      defaultValue: activeStatusBuilding.name,
+                    }
+                  )}
+                  footer={t("masterPlanView.tooltip.buildingSummary", {
+                    floors: activeStatusBuilding.summary.totalFloors,
+                    units: activeStatusBuilding.summary.availableUnits,
+                  })}
                 />
               </motion.div>
             ) : null}

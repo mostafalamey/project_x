@@ -47,6 +47,8 @@ export const ModelView = () => {
   const [imageError, setImageError] = useState(false);
   const [tourId, setTourId] = useState<string | null>(null);
   const [allModels, setAllModels] = useState<Model[]>([]);
+  const [allFramesLoaded, setAllFramesLoaded] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   // Load model data
   useEffect(() => {
@@ -225,24 +227,69 @@ export const ModelView = () => {
     setImageError(false);
   }, [currentImageUrl]);
 
-  // Preload adjacent frames for smooth rotation
+  // Preload ALL frames on mount for smooth rotation (with progress tracking)
   useEffect(() => {
-    if (!rotation360) return;
+    if (!rotation360) {
+      setAllFramesLoaded(true);
+      return;
+    }
 
-    const framesToPreload = [
-      currentFrame - 1,
-      currentFrame,
-      currentFrame + 1,
-    ].map((f) => {
-      const wrapped = f % rotation360.frameCount;
-      return wrapped < 0 ? wrapped + rotation360.frameCount : wrapped;
-    });
+    let cancelled = false;
+    const imageCache = new Map<number, HTMLImageElement>();
+    let loadedCount = 0;
 
-    framesToPreload.forEach((frame) => {
-      const img = new Image();
-      img.src = getFrameUrl(frame);
-    });
-  }, [currentFrame, rotation360]);
+    const preloadAllFrames = async () => {
+      setAllFramesLoaded(false);
+      setLoadingProgress(0);
+
+      const framePromises = Array.from(
+        { length: rotation360.frameCount },
+        (_, index) => {
+          return new Promise<void>((resolve, reject) => {
+            const img = new Image();
+            const frameUrl = getFrameUrl(index);
+
+            img.onload = () => {
+              if (!cancelled) {
+                imageCache.set(index, img);
+                loadedCount++;
+                setLoadingProgress(
+                  Math.round((loadedCount / rotation360.frameCount) * 100)
+                );
+              }
+              resolve();
+            };
+
+            img.onerror = () => {
+              console.warn(`Failed to preload frame ${index}`);
+              resolve(); // Continue even if one frame fails
+            };
+
+            img.src = frameUrl;
+          });
+        }
+      );
+
+      try {
+        await Promise.all(framePromises);
+        if (!cancelled) {
+          setAllFramesLoaded(true);
+        }
+      } catch (error) {
+        console.error("Error preloading frames:", error);
+        if (!cancelled) {
+          setAllFramesLoaded(true); // Allow usage even with some failures
+        }
+      }
+    };
+
+    preloadAllFrames();
+
+    return () => {
+      cancelled = true;
+      imageCache.clear();
+    };
+  }, [rotation360]);
 
   // Animation variants
   const containerVariants = {
@@ -347,7 +394,25 @@ export const ModelView = () => {
         <div className="absolute inset-0">
           {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
-              <Loader2 className="h-16 w-16 animate-spin text-emerald-500" />
+              <div className="text-center">
+                <Loader2 className="mx-auto h-16 w-16 animate-spin text-emerald-500 mb-4" />
+                {rotation360 && !allFramesLoaded && (
+                  <div className="mt-4">
+                    <p className="text-sm text-slate-400 mb-2">
+                      {t("modelView.preloadingFrames")}
+                    </p>
+                    <div className="w-64 h-2 bg-slate-800 rounded-full overflow-hidden mx-auto">
+                      <div
+                        className="h-full bg-emerald-500 transition-all duration-300"
+                        style={{ width: `${loadingProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                      {loadingProgress}%
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

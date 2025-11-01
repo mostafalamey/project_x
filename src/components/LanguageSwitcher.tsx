@@ -80,7 +80,7 @@ export const LanguageSwitcher = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="inline-flex items-center gap-sm rounded-badge bg-surface-elevated px-md py-sm text-sm font-medium text-text-primary shadow-sm transition-hover hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         aria-label={t("languageSwitcher.ariaLabel")}
-        aria-expanded={isOpen ? "true" : "false"}
+        aria-expanded={isOpen}
         aria-haspopup="true"
       >
         <Globe className="h-4 w-4" aria-hidden="true" />

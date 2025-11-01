@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 
 import App from "./App";
-import { ThemeProvider } from "./contexts/ThemeContext";
 import "./i18n"; // Initialize i18n
 import "./styles/index.css";
 
@@ -16,8 +15,6 @@ const root = ReactDOM.createRoot(container);
 
 root.render(
   <React.StrictMode>
-    <ThemeProvider defaultMode="system">
-      <App />
-    </ThemeProvider>
+    <App />
   </React.StrictMode>
 );

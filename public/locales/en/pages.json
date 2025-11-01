@@ -71,6 +71,9 @@
         "browseModelsTitle": "Browse Models",
         "closeSearchAriaLabel": "Close search panel",
         "loadingModels": "Loading models...",
+        "tooltip": {
+            "floorLabel": "Floor {{number}}"
+        },
         "statusMessages": {
             "loadingHotspots": "Loading elevation hotspots...",
             "unableToLoad": "Unable to load building data.",
@@ -95,6 +98,10 @@
         "floorPlan": "Floor Plan",
         "floorTitle": "Floor {{number}}",
         "imageUnavailable": "Floor plan imagery unavailable",
+        "tooltip": {
+            "unitSummary": "{{area}} m² · {{bedrooms}} bed · {{bathrooms}} bath",
+            "status": "Status: {{status}}"
+        },
         "unitDetails": {
             "unitLabel": "Unit",
             "area": "Area",
@@ -137,7 +144,8 @@
         "swipe": "Swipe",
         "toRotate": "to rotate",
         "dragToRotateHint": "Drag to rotate 360°",
-        "imageNotAvailable": "Image not available"
+        "imageNotAvailable": "Image not available",
+        "preloadingFrames": "Loading 360° images..."
     },
     "masterPlanView": {
         "title": "Master Plan",
@@ -156,6 +164,9 @@
         "closeSearchAriaLabel": "Close search panel",
         "browseModelsTitle": "Browse Models",
         "loadingModels": "Loading models...",
+        "tooltip": {
+            "buildingSummary": "{{floors}} floors · {{units}} units available"
+        },
         "statusMessages": {
             "loadingAngles": "Loading master plan angles...",
             "unableToLoad": "Unable to load master plan right now.",

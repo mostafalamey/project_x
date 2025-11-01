@@ -703,7 +703,9 @@ export const BuildingView = () => {
               exit={{ opacity: 0, y: 12 }}
             >
               <Tooltip
-                title={`Floor ${tooltipFloor.number}`}
+                title={t("buildingView.tooltip.floorLabel", {
+                  number: tooltipFloor.number,
+                })}
                 footer={t("buildingView.statusMessages.selectFloor")}
               />
             </motion.div>

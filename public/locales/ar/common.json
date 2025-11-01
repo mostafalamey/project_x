@@ -48,13 +48,6 @@
         "location": "الموقع",
         "details": "التفاصيل"
     },
-    "themeToggle": {
-        "ariaLabel": "التبديل إلى الوضع {{mode}}",
-        "modes": {
-            "light": "الفاتح",
-            "dark": "الداكن"
-        }
-    },
     "languageSwitcher": {
         "ariaLabel": "اختيار اللغة",
         "currentLanguage": "اللغة الحالية"

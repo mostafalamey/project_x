@@ -83,6 +83,9 @@
         "browseModelsTitle": "تصفح النماذج",
         "closeSearchAriaLabel": "إغلاق لوحة البحث",
         "loadingModels": "جاري تحميل النماذج...",
+        "tooltip": {
+            "floorLabel": "الطابق {{number}}"
+        },
         "statusMessages": {
             "loadingHotspots": "جاري تحميل نقاط الطوابق الساخنة...",
             "unableToLoad": "غير قادر على تحميل بيانات المبنى.",
@@ -107,6 +110,10 @@
         "floorPlan": "مخطط الطابق",
         "floorTitle": "الطابق {{number}}",
         "imageUnavailable": "صورة مخطط الطابق غير متوفرة",
+        "tooltip": {
+            "unitSummary": "{{area}} م² · {{bedrooms}} غرفة نوم · {{bathrooms}} حمام",
+            "status": "الحالة: {{status}}"
+        },
         "unitDetails": {
             "unitLabel": "وحدة",
             "area": "المساحة",
@@ -149,7 +156,8 @@
         "swipe": "اسحب",
         "toRotate": "للتدوير",
         "dragToRotateHint": "اسحب للتدوير 360°",
-        "imageNotAvailable": "الصورة غير متوفرة"
+        "imageNotAvailable": "الصورة غير متوفرة",
+        "preloadingFrames": "جاري تحميل صور 360°..."
     },
     "masterPlanView": {
         "title": "المخطط الرئيسي",
@@ -168,6 +176,9 @@
         "closeSearchAriaLabel": "إغلاق لوحة البحث",
         "browseModelsTitle": "تصفح النماذج",
         "loadingModels": "جاري تحميل النماذج...",
+        "tooltip": {
+            "buildingSummary": "{{floors}} طوابق · {{units}} وحدة متاحة"
+        },
         "statusMessages": {
             "loadingAngles": "جاري تحميل زوايا المخطط الرئيسي...",
             "unableToLoad": "غير قادر على تحميل المخطط الرئيسي في الوقت الحالي.",

@@ -1,0 +1,140 @@
+{
+    "buttons": {
+        "save": "حفظ",
+        "cancel": "إلغاء",
+        "close": "إغلاق",
+        "delete": "حذف",
+        "edit": "تعديل",
+        "add": "إضافة",
+        "remove": "إزالة",
+        "upload": "رفع",
+        "download": "تحميل",
+        "export": "تصدير",
+        "import": "استيراد",
+        "search": "بحث",
+        "clear": "مسح",
+        "apply": "تطبيق",
+        "reset": "إعادة تعيين",
+        "confirm": "تأكيد",
+        "continue": "متابعة",
+        "back": "رجوع",
+        "next": "التالي",
+        "previous": "السابق",
+        "finish": "إنهاء"
+    },
+    "status": {
+        "loading": "جاري التحميل...",
+        "saving": "جاري الحفظ...",
+        "saved": "تم الحفظ",
+        "error": "خطأ",
+        "success": "نجح",
+        "processing": "جاري المعالجة..."
+    },
+    "messages": {
+        "noData": "لا توجد بيانات متاحة",
+        "noResults": "لم يتم العثور على نتائج",
+        "errorLoading": "خطأ في تحميل البيانات",
+        "errorSaving": "خطأ في حفظ البيانات",
+        "confirmDelete": "هل أنت متأكد أنك تريد حذف هذا؟",
+        "unsavedChanges": "لديك تغييرات غير محفوظة"
+    },
+    "labels": {
+        "name": "الاسم",
+        "description": "الوصف",
+        "type": "النوع",
+        "status": "الحالة",
+        "date": "التاريخ",
+        "time": "الوقت",
+        "location": "الموقع",
+        "details": "التفاصيل"
+    },
+    "themeToggle": {
+        "ariaLabel": "التبديل إلى الوضع {{mode}}",
+        "modes": {
+            "light": "الفاتح",
+            "dark": "الداكن"
+        }
+    },
+    "languageSwitcher": {
+        "ariaLabel": "اختيار اللغة",
+        "currentLanguage": "اللغة الحالية"
+    },
+    "landmarks": {
+        "f2d6252a-93d6-4e06-b605-9ff7083567ec": {
+            "name": "مجمع أورورا",
+            "description": "مساحة معيشية واسعة وأنيقة"
+        },
+        "7764e48d-1174-4270-a92e-667d74b20e18": {
+            "name": "جامعة مصر",
+            "description": "جامعة مصر"
+        },
+        "7b3a761c-27b0-4764-be6e-f1d66f06d34e": {
+            "name": "مستشفى مصر",
+            "description": "مستشفى مصر"
+        },
+        "a98631da-912f-4c5d-81c2-43ff08b6fc80": {
+            "name": "محطة المونوريل",
+            "description": "محطة المونوريل"
+        },
+        "b8d461bc-f2d6-4e89-9e12-72464dc200f3": {
+            "name": "نادي الرماية",
+            "description": "نادي الرماية"
+        },
+        "65c8f92d-9575-4468-806a-a7fdab2f1e42": {
+            "name": "قسم الشرطة",
+            "description": "قسم الشرطة"
+        }
+    },
+    "models": {
+        "modelPreview": "معاينة النموذج",
+        "modelId": "نموذج {{id}}",
+        "bed_zero": "0 غرفة نوم",
+        "bed_one": "غرفة نوم",
+        "bed_two": "غرفتا نوم",
+        "bed_few": "غرف نوم",
+        "bed_many": "غرفة نوم",
+        "bed_other": "غرف نوم",
+        "bath_zero": "0 حمام",
+        "bath_one": "حمام",
+        "bath_two": "حمامان",
+        "bath_few": "حمامات",
+        "bath_many": "حمامًا",
+        "bath_other": "حمام",
+        "clickToView": "انقر لعرض التفاصيل",
+        "tourBadge": "جولة 360°",
+        "browseModels": "تصفح النماذج",
+        "hideModels": "إخفاء النماذج",
+        "browseModelsAriaShow": "تصفح نماذج الوحدات المتاحة",
+        "browseModelsAriaHide": "إخفاء لوحة تصفح النماذج",
+        "noModels": "لا توجد نماذج تطابق معايير البحث. حاول تعديل عوامل التصفية."
+    },
+    "bedrooms_zero": "{{count}} غرفة نوم",
+    "bedrooms_one": "{{count}} غرفة نوم",
+    "bedrooms_two": "{{count}} غرفتا نوم",
+    "bedrooms_few": "{{count}} غرف نوم",
+    "bedrooms_many": "{{count}} غرفة نوم",
+    "bedrooms_other": "{{count}} غرف نوم",
+    "bathrooms_zero": "{{count}} حمام",
+    "bathrooms_one": "{{count}} حمام",
+    "bathrooms_two": "{{count}} حمامان",
+    "bathrooms_few": "{{count}} حمامات",
+    "bathrooms_many": "{{count}} حمامًا",
+    "bathrooms_other": "{{count}} حمام",
+    "availability": {
+        "available": "متاح",
+        "reserved": "محجوز",
+        "sold": "مباع"
+    },
+    "modelTitles": {
+        "A-2": "جناح أنيق بغرفتي نوم",
+        "A-3": "شقة عصرية بثلاث غرف نوم"
+    },
+    "modelDescriptions": {
+        "A-2": "تصميم راقٍ مع استخدام فعال للمساحة.",
+        "A-3": "تصميم واسع مع مساحات مريحة"
+    },
+    "buildingNames": {
+        "B-11": "البرج الشمالي",
+        "A-12": "البرح السكني"
+    }
+}

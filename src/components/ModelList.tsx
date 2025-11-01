@@ -1,5 +1,6 @@
 import { BedDouble, Bath, ChevronRight, Video } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import type { Model } from "../data/types";
@@ -20,6 +21,7 @@ export const ModelList = ({
   backLocation,
 }: ModelListProps) => {
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
   const { setModelBackLocation } = useNavigationStore();
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
@@ -28,7 +30,6 @@ export const ModelList = ({
 
     // Store the back location before navigating
     if (backLocation) {
-      console.log("ModelList: Storing back location:", backLocation);
       setModelBackLocation(backLocation);
     }
 
@@ -63,9 +64,7 @@ export const ModelList = ({
   if (models.length === 0) {
     return (
       <div className="rounded-card bg-surface-base p-lg text-center">
-        <p className="text-text-secondary">
-          No models match your search criteria. Try adjusting your filters.
-        </p>
+        <p className="text-text-secondary">{t("models.noModels")}</p>
       </div>
     );
   }
@@ -97,15 +96,15 @@ export const ModelList = ({
                     {model.id}
                   </div>
                   <div className="text-xs text-text-tertiary">
-                    Model Preview
+                    {t("models.modelPreview")}
                   </div>
                 </div>
               </div>
             )}
             {model.tourPath && (
-              <div className="absolute right-sm top-sm flex items-center gap-xs rounded-badge bg-primary px-sm py-xs text-xs font-semibold text-text-inverse shadow-elevated backdrop-blur-sm">
+              <div className="absolute top-sm flex items-center gap-xs rounded-badge bg-primary px-sm py-xs text-xs font-semibold text-text-inverse shadow-elevated backdrop-blur-sm ltr:right-sm rtl:left-sm">
                 <Video className="h-3 w-3" />
-                <span>360° Tour</span>
+                <span>{t("models.tourBadge")}</span>
               </div>
             )}
           </div>
@@ -114,7 +113,7 @@ export const ModelList = ({
           <div className="p-md">
             <div className="mb-sm flex items-start justify-between">
               <h3 className="text-lg font-bold text-text-primary transition-color group-hover:text-text-accent">
-                Model {model.id}
+                {t("models.modelId", { id: model.id })}
               </h3>
               <span className="rounded-badge bg-bg-elevated px-sm py-xs text-xs font-medium text-text-accent">
                 {model.areaM2} m²
@@ -126,20 +125,23 @@ export const ModelList = ({
               <div className="flex items-center gap-xs">
                 <BedDouble className="h-3.5 w-3.5" />
                 <span>
-                  {model.bedrooms} {model.bedrooms === 1 ? "Bed" : "Beds"}
+                  {model.bedrooms} {t("models.bed", { count: model.bedrooms })}
                 </span>
               </div>
               <div className="flex items-center gap-xs">
                 <Bath className="h-3.5 w-3.5" />
                 <span>
-                  {model.bathrooms} {model.bathrooms === 1 ? "Bath" : "Baths"}
+                  {model.bathrooms}{" "}
+                  {t("models.bath", { count: model.bathrooms })}
                 </span>
               </div>
             </div>
 
             {/* Call to Action - Minimal */}
             <div className="flex items-center justify-between border-t border-border-muted pt-2.5 text-xs">
-              <span className="text-text-tertiary">Click to view details</span>
+              <span className="text-text-tertiary">
+                {t("models.clickToView")}
+              </span>
               <ChevronRight className="h-3.5 w-3.5 text-text-accent transition group-hover:translate-x-1" />
             </div>
           </div>

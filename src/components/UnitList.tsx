@@ -1,4 +1,5 @@
-import { type KeyboardEvent } from "react";
+import { useMemo, type KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import type { EnrichedUnit } from "../data/enrichment";
@@ -6,19 +7,6 @@ import type { EnrichedUnit } from "../data/enrichment";
 type UnitListProps = {
   units: EnrichedUnit[];
   onUnitSelect?: (unit: EnrichedUnit) => void;
-};
-
-const formatPrice = (price: number | undefined) => {
-  if (price === undefined) {
-    return "Price on request";
-  }
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
 };
 
 const availabilityStyles = {
@@ -31,6 +19,29 @@ const availabilityStyles = {
 
 export const UnitList = ({ units, onUnitSelect }: UnitListProps) => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation("pages");
+
+  const numberFormatter = useMemo(
+    () => new Intl.NumberFormat(i18n.language),
+    [i18n.language]
+  );
+
+  const priceFormatter = useMemo(() => {
+    return new Intl.NumberFormat(i18n.language, {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+  }, [i18n.language]);
+
+  const formatPrice = (price: number | undefined) => {
+    if (price === undefined) {
+      return t("unitsView.list.priceOnRequest");
+    }
+
+    return priceFormatter.format(price);
+  };
 
   const handleUnitClick = (unit: EnrichedUnit) => {
     onUnitSelect?.(unit);
@@ -53,9 +64,7 @@ export const UnitList = ({ units, onUnitSelect }: UnitListProps) => {
   if (units.length === 0) {
     return (
       <div className="rounded-card bg-surface-base p-lg text-center">
-        <p className="text-text-secondary">
-          No units match your search criteria. Try adjusting your filters.
-        </p>
+        <p className="text-text-secondary">{t("unitsView.list.noResults")}</p>
       </div>
     );
   }
@@ -81,22 +90,34 @@ export const UnitList = ({ units, onUnitSelect }: UnitListProps) => {
                 availabilityStyles[unit.availability]
               }`}
             >
-              {unit.availability}
+              {t(
+                `unitsView.search.availability.${unit.availability.toLowerCase()}`
+              )}
             </span>
           </div>
 
           {/* Unit Details */}
           <div className="mb-sm space-y-xs text-sm text-text-primary">
             <div className="flex items-center justify-between">
-              <span className="text-text-secondary">Area:</span>
-              <span className="font-medium">{unit.areaM2} m²</span>
+              <span className="text-text-secondary">
+                {t("unitsView.list.area")}
+              </span>
+              <span className="font-medium">
+                {t("unitsView.list.areaValue", {
+                  value: numberFormatter.format(unit.areaM2),
+                })}
+              </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-text-secondary">Bedrooms:</span>
+              <span className="text-text-secondary">
+                {t("unitsView.list.bedrooms")}
+              </span>
               <span className="font-medium">{unit.bedrooms}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-text-secondary">Bathrooms:</span>
+              <span className="text-text-secondary">
+                {t("unitsView.list.bathrooms")}
+              </span>
               <span className="font-medium">{unit.bathrooms}</span>
             </div>
           </div>
@@ -105,7 +126,7 @@ export const UnitList = ({ units, onUnitSelect }: UnitListProps) => {
           <div className="border-t border-border-muted pt-3">
             <div className="flex items-center justify-between">
               <span className="text-xs uppercase tracking-wide text-text-secondary">
-                Price
+                {t("unitsView.list.price")}
               </span>
               <span className="text-sm font-semibold text-text-accent">
                 {formatPrice(unit.price)}
@@ -115,8 +136,10 @@ export const UnitList = ({ units, onUnitSelect }: UnitListProps) => {
 
           {/* Location */}
           <div className="mt-2 text-xs text-text-tertiary">
-            Building {unit.buildingId.toUpperCase()} • Floor{" "}
-            {unit.floorId.toUpperCase()}
+            {t("unitsView.list.location", {
+              building: unit.buildingId.toUpperCase(),
+              floor: unit.floorId.toUpperCase(),
+            })}
           </div>
         </div>
       ))}

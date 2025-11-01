@@ -207,8 +207,6 @@ export async function exportModelsToFileSystem(
     const jsonWritable = await jsonFileHandle.createWritable();
     await jsonWritable.write(jsonBlob);
     await jsonWritable.close();
-
-    console.log(`Successfully exported ${models.length} models to file system`);
   } catch (err) {
     if ((err as Error).name === "AbortError") {
       throw new Error("Export cancelled by user");
@@ -261,8 +259,6 @@ export async function exportCompleteProjectToFileSystem(
     const projectWritable = await projectFileHandle.createWritable();
     await projectWritable.write(projectBlob);
     await projectWritable.close();
-
-    console.log("Successfully exported complete project to file system");
   } catch (err) {
     if ((err as Error).name === "AbortError") {
       throw new Error("Export cancelled by user");

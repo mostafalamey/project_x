@@ -1,0 +1,40 @@
+{
+    "dashboard": {
+        "title": "لوحة التحكم في الإعدادات",
+        "subtitle": "إدارة إعدادات المشروع",
+        "welcome": "مرحبًا بك في لوحة الإدارة"
+    },
+    "editors": {
+        "map": "محرر الخريطة",
+        "masterPlan": "محرر المخطط الرئيسي",
+        "building": "محرر المباني",
+        "floor": "محرر الطوابق",
+        "landmark": "محرر المعالم",
+        "tour": "محرر الجولات",
+        "model": "محرر النماذج"
+    },
+    "properties": {
+        "general": "عام",
+        "appearance": "المظهر",
+        "position": "الموقع",
+        "dimensions": "الأبعاد",
+        "settings": "الإعدادات"
+    },
+    "toolbar": {
+        "select": "تحديد",
+        "move": "نقل",
+        "rotate": "تدوير",
+        "scale": "تغيير الحجم",
+        "delete": "حذف",
+        "undo": "تراجع",
+        "redo": "إعادة"
+    },
+    "export": {
+        "title": "تصدير المشروع",
+        "description": "تصدير الإعدادات الخاصة بك",
+        "exportAll": "تصدير الكل",
+        "exportSelected": "تصدير المحدد",
+        "autosave": "الحفظ التلقائي",
+        "lastSaved": "آخر حفظ: {{time}}"
+    }
+}

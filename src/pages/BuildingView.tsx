@@ -7,6 +7,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { BackNav } from "../components/BackNav";
@@ -128,6 +129,7 @@ export const BuildingView = () => {
   const { buildingId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("pages");
   const { startTransition, direction } = useTransitionContext();
   const [state, setState] = useState<FetchState<Building>>(initialState);
   const [highlightedFloorId, setHighlightedFloorId] = useState<string | null>(
@@ -447,15 +449,15 @@ export const BuildingView = () => {
 
   const statusMessage = useMemo(() => {
     if (state.status === "loading") {
-      return "Loading elevation hotspots...";
+      return t("buildingView.statusMessages.loadingHotspots");
     }
 
     if (state.status === "error") {
-      return state.error ?? "Unable to load building data.";
+      return state.error ?? t("buildingView.statusMessages.unableToLoad");
     }
 
-    return "Select a floor to open the floor plan.";
-  }, [state]);
+    return t("buildingView.statusMessages.selectFloor");
+  }, [state, t]);
 
   const handleFloorNavigate = (floorId: string, polygons?: Polygon[]) => {
     if (!buildingId || zoomingFloorId === floorId) {
@@ -632,7 +634,7 @@ export const BuildingView = () => {
           <div className="flex flex-col gap-lg sm:flex-row sm:items-start sm:justify-between">
             <div className="pointer-events-auto flex flex-col gap-md">
               <BackNav
-                label="Master plan"
+                label={t("navigation:backToMasterPlan")}
                 to={
                   masterPlanAngle
                     ? `/masterplan?angle=${masterPlanAngle}`
@@ -641,22 +643,30 @@ export const BuildingView = () => {
               />
               <div>
                 <span className="text-xs font-semibold uppercase tracking-[0.45em] text-text-accent">
-                  {state.data?.id ?? "Building"}
+                  {state.data?.id ?? t("buildingView.buildingLabel")}
                 </span>
                 <h1 className="mt-3 text-4xl font-bold sm:text-5xl">
-                  {state.data?.name ?? "Building Elevation"}
+                  {state.data?.id
+                    ? t(`common:buildingNames.${state.data.id}`, {
+                        defaultValue:
+                          state.data?.name ??
+                          t("buildingView.buildingElevation"),
+                      })
+                    : t("buildingView.buildingElevation")}
                 </h1>
                 <p className="mt-3 max-w-xl text-sm">
-                  Hover floors to preview stats, then click to dive into the
-                  plan. The elevation stays immersive while overlays float above
-                  the imagery.
+                  {t("buildingView.pageSubtitle")}
                 </p>
               </div>
             </div>
             {state.data ? (
               <div className="pointer-events-auto flex flex-col items-end gap-md">
                 <div className="flex flex-col items-end gap-sm rounded-card border border-border-muted bg-surface-elevated/50 px-lg py-md text-xs uppercase tracking-[0.45em] text-text-secondary">
-                  <span>Total floors · {sortedFloors.length}</span>
+                  <span>
+                    {t("buildingView.totalFloors", {
+                      count: sortedFloors.length,
+                    })}
+                  </span>
                 </div>
                 <BrowseModelsButton
                   isOpen={showSearch}
@@ -694,7 +704,7 @@ export const BuildingView = () => {
             >
               <Tooltip
                 title={`Floor ${tooltipFloor.number}`}
-                footer="Select to open the floor plan view"
+                footer={t("buildingView.statusMessages.selectFloor")}
               />
             </motion.div>
           ) : null}
@@ -719,12 +729,14 @@ export const BuildingView = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="mb-lg flex items-center justify-between">
-                  <h2 className="text-heading-3 font-bold">Browse Models</h2>
+                  <h2 className="text-heading-3 font-bold">
+                    {t("buildingView.browseModelsTitle")}
+                  </h2>
                   <button
                     type="button"
                     onClick={() => setShowSearch(false)}
                     className="rounded-button p-sm transition-hover hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                    aria-label="Close search panel"
+                    aria-label={t("buildingView.closeSearchAriaLabel")}
                   >
                     <X className="h-6 w-6" />
                   </button>
@@ -735,7 +747,9 @@ export const BuildingView = () => {
                   <div className="flex items-center justify-center py-2xl">
                     <div className="text-center">
                       <Loader2 className="mb-md inline-block h-12 w-12 animate-spin text-primary" />
-                      <p className="text-text-secondary">Loading models...</p>
+                      <p className="text-text-secondary">
+                        {t("buildingView.loadingModels")}
+                      </p>
                     </div>
                   </div>
                 ) : modelsState.status === "error" ? (

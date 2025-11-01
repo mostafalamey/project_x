@@ -90,8 +90,6 @@ export default function BuildingEditor({ projectId }: BuildingEditorProps) {
 
   // Handle building selection
   const handleBuildingSelect = async (buildingId: string) => {
-    console.log("Building selected:", buildingId);
-
     if (!buildingId) {
       selectBuilding(null);
       return;
@@ -115,12 +113,8 @@ export default function BuildingEditor({ projectId }: BuildingEditorProps) {
             floors: [],
           });
 
-          console.log("Building created, reloading...");
-
           // Reload buildings to get the newly created one
           await loadBuildings(projectId);
-
-          console.log("Buildings reloaded, selecting building");
 
           // Select the building after it's been created and loaded
           selectBuilding(buildingId);

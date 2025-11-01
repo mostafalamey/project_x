@@ -134,8 +134,6 @@ export default function TourSceneEditor({
       return;
     }
 
-    console.log("🔄 Initializing viewer for scene:", selectedScene.name);
-
     // Destroy existing viewer if any
     if (viewerRef.current) {
       viewerRef.current.destroy();
@@ -148,14 +146,6 @@ export default function TourSceneEditor({
       const cameraOverride = pendingCameraOverrideRef.current;
       const yaw = cameraOverride?.yaw ?? selectedScene.defaultYaw ?? 0;
       const pitch = cameraOverride?.pitch ?? selectedScene.defaultPitch ?? 0;
-
-      console.log("📷 Initializing viewer with camera:", {
-        yaw,
-        pitch,
-        zoom: selectedScene.defaultZoom ?? 50,
-        hasOverride: !!cameraOverride,
-        override: cameraOverride,
-      });
 
       const viewer = new Viewer({
         container: containerRef.current,
@@ -178,26 +168,20 @@ export default function TourSceneEditor({
 
       // Clear the camera override ref after it's been used
       if (cameraOverride) {
-        console.log("✅ Camera override applied successfully, clearing ref");
         pendingCameraOverrideRef.current = null;
       }
 
       // Add click event listener for adding new hotspots
       viewer.addEventListener("click", (data: any) => {
-        console.log("=== CLICK EVENT ===", data);
-
         if (!isPreviewMode && !isAddHotspotOpen) {
           const { yaw, pitch } = data.data;
 
           if (yaw !== undefined && pitch !== undefined) {
-            console.log("✓ Got click position:", { yaw, pitch });
             setPendingHotspotPosition({ yaw, pitch });
             setIsAddHotspotOpen(true);
           }
         }
       });
-
-      console.log("✅ Viewer initialized successfully");
     } catch (error) {
       console.error("❌ Failed to initialize viewer:", error);
     }
@@ -251,11 +235,6 @@ export default function TourSceneEditor({
 
     const markersPlugin = markersPluginRef.current;
 
-    console.log("🎯 Updating markers for scene:", selectedScene.name, {
-      hotspotCount: selectedScene.hotspots.length,
-      isPreviewMode,
-    });
-
     // Clear all existing markers
     markersPlugin.clearMarkers();
 
@@ -264,16 +243,6 @@ export default function TourSceneEditor({
       const targetScene = tour?.scenes.find(
         (s) => s.id === hotspot.targetSceneId
       );
-
-      console.log("➕ Adding marker:", {
-        id: hotspot.id,
-        position: hotspot.position,
-        targetScene: targetScene?.name,
-        targetCamera: {
-          yaw: hotspot.targetYaw,
-          pitch: hotspot.targetPitch,
-        },
-      });
 
       markersPlugin.addMarker({
         id: hotspot.id,
@@ -308,24 +277,12 @@ export default function TourSceneEditor({
     const handleMarkerClick = (e: any) => {
       const hotspot = e.marker.data as SceneHotspot;
 
-      console.log("🖱️ Marker clicked:", {
-        hotspotId: hotspot.id,
-        isPreviewMode,
-        targetSceneId: hotspot.targetSceneId,
-        targetYaw: hotspot.targetYaw,
-        targetPitch: hotspot.targetPitch,
-      });
-
       if (isPreviewMode && hotspot.targetSceneId) {
         // In preview mode, navigate to the target scene with saved camera orientation
         if (
           hotspot.targetYaw !== undefined &&
           hotspot.targetPitch !== undefined
         ) {
-          console.log("📷 Setting camera override ref:", {
-            yaw: hotspot.targetYaw,
-            pitch: hotspot.targetPitch,
-          });
           // Use ref instead of state to avoid triggering extra re-renders
           pendingCameraOverrideRef.current = {
             yaw: hotspot.targetYaw,
@@ -498,12 +455,6 @@ export default function TourSceneEditor({
 
     // Get current camera orientation to preserve spatial consistency
     const currentCameraPosition = viewerRef.current?.getPosition();
-
-    console.log("🎯 Creating hotspot with target camera orientation:", {
-      targetYaw: currentCameraPosition?.yaw,
-      targetPitch: currentCameraPosition?.pitch,
-      markerPosition: pendingHotspotPosition,
-    });
 
     await addHotspot(tour.id, selectedScene.id, {
       targetSceneId: hotspotTargetSceneId,

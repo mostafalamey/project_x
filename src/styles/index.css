@@ -71,3 +71,31 @@ a:focus-visible,
 .panorama-pulse {
   animation: panorama-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* ============================================
+   RTL (Right-to-Left) Support
+   ============================================ */
+
+/* Flip horizontal margins and padding for RTL */
+[dir="rtl"] {
+  direction: rtl;
+}
+
+/* Mirror icons and directional elements */
+[dir="rtl"] .rtl-mirror {
+  transform: scaleX(-1);
+}
+
+/* Adjust text alignment for RTL */
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+/* Flip flex direction for RTL when needed */
+[dir="rtl"] .rtl-flip {
+  flex-direction: row-reverse;
+}

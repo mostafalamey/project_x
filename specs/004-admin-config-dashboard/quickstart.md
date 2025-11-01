@@ -101,49 +101,49 @@ The `#` indicates hash-based routing (required for static deployment).
 
 1. **Create the page component**:
 
-    ```typescript
-    // src/admin/pages/NewSectionPage.tsx
-    import { useState } from "react";
-    import AdminLayout from "../components/layout/AdminLayout";
-    import FullViewportCanvas from "../components/canvas/FullViewportCanvas";
+   ```typescript
+   // src/admin/pages/NewSectionPage.tsx
+   import { useState } from "react";
+   import AdminLayout from "../components/layout/AdminLayout";
+   import FullViewportCanvas from "../components/canvas/FullViewportCanvas";
 
-    export default function NewSectionPage() {
-    return (
-        <AdminLayout>
-        <FullViewportCanvas>{/* Canvas content */}</FullViewportCanvas>
-        </AdminLayout>
-    );
-    }
-    ```
+   export default function NewSectionPage() {
+     return (
+       <AdminLayout>
+         <FullViewportCanvas>{/* Canvas content */}</FullViewportCanvas>
+       </AdminLayout>
+     );
+   }
+   ```
 
 2. **Add route**:
 
-    ```typescript
-    // src/routes/index.tsx
-    import NewSectionPage from "@/admin/pages/NewSectionPage";
+   ```typescript
+   // src/routes/index.tsx
+   import NewSectionPage from "@/admin/pages/NewSectionPage";
 
-    const routes = [
-    // ... existing routes
-    {
-        path: "/admin/new-section",
-        element: <NewSectionPage />,
-    },
-    ];
-    ```
+   const routes = [
+     // ... existing routes
+     {
+       path: "/admin/new-section",
+       element: <NewSectionPage />,
+     },
+   ];
+   ```
 
 3. **Add to sidebar navigation**:
 
-    ```typescript
-    // src/admin/components/layout/AdminSidebar.tsx
-    const navItems = [
-    // ... existing items
-    {
-        path: "/admin/new-section",
-        label: "New Section",
-        icon: <NewIcon />,
-    },
-    ];
-    ```
+   ```typescript
+   // src/admin/components/layout/AdminSidebar.tsx
+   const navItems = [
+     // ... existing items
+     {
+       path: "/admin/new-section",
+       label: "New Section",
+       icon: <NewIcon />,
+     },
+   ];
+   ```
 
 ### Creating a Zustand Store
 
@@ -379,7 +379,6 @@ export function useAutosave<T>(
           data: JSON.stringify(data),
           timestamp: Date.now(),
         });
-        console.log("Autosaved:", key);
       } catch (error) {
         console.error("Autosave failed:", error);
       }

@@ -1,0 +1,26 @@
+{
+    "back": "Back",
+    "backTo": "Back to {{destination}}",
+    "backToMap": "Back to Map",
+    "backToMasterPlan": "Back to Master Plan",
+    "backToBuilding": "Back to Building",
+    "backToFloor": "Back to Floor",
+    "backToModels": "Back to Models",
+    "menu": {
+        "home": "Home",
+        "map": "Map",
+        "masterPlan": "Master Plan",
+        "buildings": "Buildings",
+        "units": "Units",
+        "tours": "Tours",
+        "models": "3D Models",
+        "admin": "Admin"
+    },
+    "breadcrumbs": {
+        "home": "Home",
+        "map": "Map",
+        "building": "Building",
+        "floor": "Floor",
+        "unit": "Unit"
+    }
+}

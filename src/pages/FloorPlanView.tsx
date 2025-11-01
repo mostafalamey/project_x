@@ -8,6 +8,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { BackNav } from "../components/BackNav";
@@ -138,6 +139,7 @@ export const FloorPlanView = () => {
   const { buildingId, floorId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("pages");
   const { direction } = useTransitionContext();
   const { setTourBackLocation } = useNavigationStore();
   const [state, setState] = useState<FetchState<EnrichedFloor>>(initialState);
@@ -448,10 +450,6 @@ export const FloorPlanView = () => {
         ? `/building/${buildingId}/floor/${floorId}?${backQuery}`
         : `/building/${buildingId}/floor/${floorId}`;
 
-      console.log(
-        "FloorPlanView: Storing back location for unit tour:",
-        backUrl
-      );
       setTourBackLocation(backUrl);
 
       // Navigate to tour without query params
@@ -494,10 +492,6 @@ export const FloorPlanView = () => {
         );
 
         if (!cancelled) {
-          console.log(
-            `Tour detection for model ${selectedUnit.tooltip.modelId}:`,
-            tourId ? `Found tour ${tourId}` : "No tour available"
-          );
           setSelectedUnitTourId(tourId);
         }
       } catch (error) {
@@ -645,19 +639,19 @@ export const FloorPlanView = () => {
 
   const statusMessage = useMemo(() => {
     if (state.status === "loading") {
-      return "Loading floor hotspots...";
+      return t("floorPlanView.statusMessages.loadingHotspots");
     }
 
     if (state.status === "error") {
-      return state.error ?? "Unable to load floor plan.";
+      return state.error ?? t("floorPlanView.statusMessages.unableToLoad");
     }
 
     if (!state.data || state.data.units.length === 0) {
-      return "No units available on this floor yet.";
+      return t("floorPlanView.statusMessages.noUnits");
     }
 
-    return "Hover units to preview details, then select for full information.";
-  }, [state.data, state.error, state.status]);
+    return t("floorPlanView.statusMessages.hoverToPreview");
+  }, [state.data, state.error, state.status, t]);
 
   const selectedUnitRecord = useMemo(() => {
     if (!selectedUnitId || !unitLookup) {
@@ -672,8 +666,14 @@ export const FloorPlanView = () => {
       return null;
     }
 
-    return selectedUnit.tooltip.modelTitle ?? selectedUnit.tooltip.modelId;
-  }, [selectedUnit]);
+    const modelId = selectedUnit.tooltip.modelId;
+    const modelTitle = selectedUnit.tooltip.modelTitle;
+
+    // Try to get translated title, fall back to original title or model ID
+    return t(`common:modelTitles.${modelId}`, {
+      defaultValue: modelTitle ?? modelId,
+    });
+  }, [selectedUnit, t]);
 
   return (
     <motion.div
@@ -711,7 +711,7 @@ export const FloorPlanView = () => {
             ) : (
               <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 flex items-center justify-center">
                 <span className="text-slate-400 text-sm">
-                  Floor plan imagery unavailable
+                  {t("floorPlanView.imageUnavailable")}
                 </span>
               </div>
             )}
@@ -818,31 +818,45 @@ export const FloorPlanView = () => {
           {/* Header */}
           <div className="flex flex-col gap-lg sm:flex-row sm:items-start sm:justify-between z-40">
             <div className="pointer-events-auto flex flex-col gap-md">
-              <BackNav label="Building" to={backHref} />
+              <BackNav label={t("navigation:backToBuilding")} to={backHref} />
               <div>
                 <span className="text-xs font-semibold uppercase tracking-[0.45em] text-text-accent">
                   ({state.data?.buildingId ?? "Building ID"}){" "}
-                  {state.data?.buildingName ?? "Building"}
+                  {state.data?.buildingName ?? t("floorPlanView.buildingLabel")}
                 </span>
                 <h1 className="mt-sm text-heading-1 font-bold">
                   {state.data
-                    ? `Floor ${state.data.floorNumber}`
-                    : "Floor Plan"}
+                    ? t("floorPlanView.floorTitle", {
+                        number: state.data.floorNumber,
+                      })
+                    : t("floorPlanView.floorPlan")}
                 </h1>
                 <p className="mt-sm max-w-xl text-sm text-text-primary">
-                  Explore the full floor layout. Hover units to preview key
-                  stats, then select a unit to focus its outline and open the
-                  quick details panel with a direct link to the 360 tour.
+                  {t("floorPlanView.pageSubtitle")}
                 </p>
               </div>
             </div>
             {state.data ? (
               <div className="pointer-events-auto flex flex-col items-end gap-md">
                 <div className="flex flex-col items-end gap-sm rounded-card border border-border-muted bg-surface-elevated/55 px-lg py-md text-xs uppercase tracking-[0.45em] text-text-secondary">
-                  <span>Total units · {unitSummary.total}</span>
-                  <span>Available · {unitSummary.available}</span>
-                  <span>Reserved · {unitSummary.reserved}</span>
-                  <span>Sold · {unitSummary.sold}</span>
+                  <span>
+                    {t("floorPlanView.totalUnits", {
+                      count: unitSummary.total,
+                    })}
+                  </span>
+                  <span>
+                    {t("floorPlanView.available", {
+                      count: unitSummary.available,
+                    })}
+                  </span>
+                  <span>
+                    {t("floorPlanView.reserved", {
+                      count: unitSummary.reserved,
+                    })}
+                  </span>
+                  <span>
+                    {t("floorPlanView.sold", { count: unitSummary.sold })}
+                  </span>
                 </div>
                 <BrowseModelsButton
                   isOpen={showSearch}
@@ -868,10 +882,10 @@ export const FloorPlanView = () => {
                   setHoveredUnitId(null);
                   resetZoom();
                 }}
-                className="absolute right-md top-md rounded-badge border border-border bg-surface-base/60 px-sm py-xs text-caption uppercase tracking-[0.25em] text-text-tertiary transition-hover hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                aria-label="Close unit details"
+                className="absolute top-md rounded-badge border border-border bg-surface-base/60 px-sm py-xs text-caption uppercase tracking-[0.25em] text-text-tertiary transition-hover hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ltr:right-md rtl:left-md"
+                aria-label={t("floorPlanView.closeUnitDetailsAriaLabel")}
               >
-                Close
+                {t("floorPlanView.closeUnitDetails")}
               </button>
               <p className="text-caption uppercase tracking-[0.35em] text-primary">
                 {selectedUnit.tooltip.modelId}
@@ -880,33 +894,50 @@ export const FloorPlanView = () => {
                 {selectedUnitModel}
               </h2>
               <p className="mt-xs text-xs uppercase tracking-[0.3em] text-text-tertiary">
-                Unit · {selectedUnit.unitId}
+                {t("floorPlanView.unitDetails.unitLabel")} ·{" "}
+                {selectedUnit.unitId}
               </p>
               <dl className="mt-lg space-y-sm text-base text-text-secondary">
                 <div className="flex items-center justify-between">
-                  <dt className="text-text-tertiary">Area</dt>
+                  <dt className="text-text-tertiary">
+                    {t("floorPlanView.unitDetails.area")}
+                  </dt>
                   <dd>{selectedUnit.tooltip.areaM2} m^2</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-text-tertiary">Bedrooms</dt>
+                  <dt className="text-text-tertiary">
+                    {t("floorPlanView.unitDetails.bedrooms")}
+                  </dt>
                   <dd>{selectedUnit.tooltip.bedrooms}</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-text-tertiary">Bathrooms</dt>
+                  <dt className="text-text-tertiary">
+                    {t("floorPlanView.unitDetails.bathrooms")}
+                  </dt>
                   <dd>{selectedUnit.tooltip.bathrooms}</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-text-tertiary">Status</dt>
-                  <dd>{selectedUnit.tooltip.availability}</dd>
+                  <dt className="text-text-tertiary">
+                    {t("floorPlanView.unitDetails.status")}
+                  </dt>
+                  <dd>
+                    {t(
+                      `common:availability.${selectedUnit.tooltip.availability}`
+                    )}
+                  </dd>
                 </div>
                 {selectedUnit.tooltip.price ? (
                   <div className="flex items-center justify-between">
-                    <dt className="text-text-tertiary">Price</dt>
+                    <dt className="text-text-tertiary">
+                      {t("floorPlanView.unitDetails.price")}
+                    </dt>
                     <dd>${selectedUnit.tooltip.price.toLocaleString()}</dd>
                   </div>
                 ) : selectedUnitRecord?.price ? (
                   <div className="flex items-center justify-between">
-                    <dt className="text-text-tertiary">Price</dt>
+                    <dt className="text-text-tertiary">
+                      {t("floorPlanView.unitDetails.price")}
+                    </dt>
                     <dd>${selectedUnitRecord.price.toLocaleString()}</dd>
                   </div>
                 ) : null}
@@ -925,11 +956,13 @@ export const FloorPlanView = () => {
                 disabled={!selectedUnitTourId}
                 title={
                   selectedUnitTourId
-                    ? "View virtual tour of this unit"
-                    : "No virtual tour available for this unit"
+                    ? t("floorPlanView.unitDetails.viewTourTitle")
+                    : t("floorPlanView.unitDetails.noTourTitle")
                 }
               >
-                {selectedUnitTourId ? "View 360 Tour" : "Tour Not Available"}
+                {selectedUnitTourId
+                  ? t("floorPlanView.unitDetails.viewTour")
+                  : t("floorPlanView.unitDetails.noTour")}
               </button>
             </div>
           </div>
@@ -954,12 +987,14 @@ export const FloorPlanView = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="mb-lg flex items-center justify-between">
-                  <h2 className="text-heading-3 font-bold">Browse Models</h2>
+                  <h2 className="text-heading-3 font-bold">
+                    {t("floorPlanView.browseModelsTitle")}
+                  </h2>
                   <button
                     type="button"
                     onClick={() => setShowSearch(false)}
                     className="rounded-button p-sm transition-hover hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                    aria-label="Close search panel"
+                    aria-label={t("floorPlanView.closeSearchAriaLabel")}
                   >
                     <X className="h-6 w-6" />
                   </button>
@@ -970,7 +1005,9 @@ export const FloorPlanView = () => {
                   <div className="flex items-center justify-center py-2xl">
                     <div className="text-center">
                       <Loader2 className="mb-md inline-block h-12 w-12 animate-spin text-primary" />
-                      <p className="text-text-secondary">Loading models...</p>
+                      <p className="text-text-secondary">
+                        {t("floorPlanView.loadingModels")}
+                      </p>
                     </div>
                   </div>
                 ) : modelsState.status === "error" ? (

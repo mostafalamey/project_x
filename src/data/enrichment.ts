@@ -133,7 +133,6 @@ export const checkTourExists = async (modelId: string): Promise<boolean> => {
     return data && Array.isArray(data.scenes) && data.scenes.length > 0;
   } catch (error) {
     // If fetch fails or JSON parsing fails, tour doesn't exist
-    console.log(`Tour file check failed for ${modelId}:`, error);
     return false;
   }
 };
@@ -149,16 +148,11 @@ export const getTourIdForModel = async (
   const tourPath = getTourPathByModelId(modelId, models);
   if (tourPath) {
     const tourId = deriveTourId(tourPath);
-    console.log(
-      `Model ${modelId} has tourPath: ${tourPath} -> tourId: ${tourId}`
-    );
     return tourId;
   }
 
   // If no tourPath, check if tour file exists with modelId as tourId
-  console.log(`Model ${modelId} has no tourPath, checking for tour file...`);
   const tourExists = await checkTourExists(modelId);
-  console.log(`Model ${modelId} tour file exists: ${tourExists}`);
   return tourExists ? modelId : null;
 };
 

@@ -495,8 +495,6 @@ export const useMasterPlanStore = create<MasterPlanStore>((set, get) => ({
         ),
         isLoading: false,
       }));
-
-      console.log("✅ Transition saved successfully");
     } catch (error) {
       console.error("❌ Failed to save transition:", error);
       const message =

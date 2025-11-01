@@ -1,4 +1,5 @@
 import { Moon, Sun } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../hooks/useTheme";
 
@@ -29,16 +30,19 @@ interface ThemeToggleProps {
  */
 export const ThemeToggle = ({ className = "" }: ThemeToggleProps) => {
   const { resolvedTheme, toggleTheme } = useTheme();
+  const { t } = useTranslation("common");
+
+  const nextMode = resolvedTheme === "dark" ? "light" : "dark";
+  const modeLabel = t(`themeToggle.modes.${nextMode}`);
+  const controlLabel = t("themeToggle.ariaLabel", { mode: modeLabel });
 
   return (
     <button
       type="button"
       onClick={toggleTheme}
       className={`group inline-flex items-center justify-center rounded-button border border-border bg-surface-base p-sm transition-hover hover:border-border-hover hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${className}`}
-      aria-label={`Switch to ${
-        resolvedTheme === "dark" ? "light" : "dark"
-      } mode`}
-      title={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+      aria-label={controlLabel}
+      title={controlLabel}
     >
       {resolvedTheme === "dark" ? (
         <Sun

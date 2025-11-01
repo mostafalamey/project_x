@@ -8,8 +8,10 @@ import {
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import { PageHeader } from "../components/PageHeader";
 import { useTransitionContext } from "../contexts/TransitionContext";
 import { loadLandmarks } from "../data/loaders";
 import type { Landmark } from "../data/types";
@@ -82,22 +84,6 @@ const computeCentroid = (points: Array<{ x: number; y: number }>) => {
   };
 };
 
-const getLandmarkPoint = (landmark: Landmark) => {
-  const point = pointFromCoords(landmark.coords);
-  if (point) {
-    return point;
-  }
-
-  const polygon = polygonFromCoords(landmark.coords);
-  if (polygon?.length) {
-    return computeCentroid(polygon);
-  }
-
-  return null;
-};
-
-const labelOffset = (value: number) => value - 12;
-
 const handleKeyActivation = (
   event: KeyboardEvent<SVGElement>,
   handler: () => void
@@ -110,12 +96,33 @@ const handleKeyActivation = (
 
 export const MapView = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(["pages", "common"]);
+  const numberFormatter = useMemo(
+    () => new Intl.NumberFormat(i18n.language),
+    [i18n.language]
+  );
   const { direction } = useTransitionContext();
   const [landmarkState, setLandmarkState] =
     useState<FetchState<Landmark[]>>(initialState);
   const [activeLandmarkId, setActiveLandmarkId] = useState<string | null>(null);
 
   const reducedMotion = prefersReducedMotion();
+
+  // Check if current language is RTL
+  const isRTLMode = i18n.dir() === "rtl";
+
+  // Helper function to get translated landmark text
+  const getLandmarkText = (
+    landmark: Landmark,
+    field: "name" | "description"
+  ) => {
+    const translationKey = `common:landmarks.${landmark.id}.${field}`;
+    const translated = t(translationKey, { defaultValue: "" });
+    // If translation exists and is not the key itself, use it; otherwise fall back to original
+    return translated && translated !== translationKey
+      ? translated
+      : landmark[field] || "";
+  };
 
   // Determine animation variants based on direction
   const exitVariant = reducedMotion
@@ -233,11 +240,6 @@ export const MapView = () => {
     [landmarkState.data]
   );
 
-  const complexPoint = useMemo(
-    () => (complexLandmark ? getLandmarkPoint(complexLandmark) : null),
-    [complexLandmark]
-  );
-
   useEffect(() => {
     window.clearTimeout(navigateTimerRef.current ?? undefined);
 
@@ -309,36 +311,44 @@ export const MapView = () => {
 
   const statusMessage = useMemo(() => {
     if (landmarkState.status === "loading") {
-      return "Loading landmark hotspots...";
+      return t("pages:mapView.loadingLandmarks");
     }
 
     if (landmarkState.status === "error") {
-      return landmarkState.error ?? "Unable to display landmarks right now.";
+      return landmarkState.error ?? t("common:messages.errorLoading");
     }
 
     if (pendingMasterplan && complexLandmark) {
-      return `Opening ${complexLandmark.name} master plan...`;
+      return t("pages:mapView.loadingWithName", {
+        name: getLandmarkText(complexLandmark, "name"),
+      });
     }
 
     if (activeLandmark && complexLandmark) {
       if (activeLandmark.type === "complex") {
-        return `Select confirmed. Preparing master plan for ${complexLandmark.name}.`;
+        return t("pages:mapView.loadingComplex", {
+          name: getLandmarkText(complexLandmark, "name"),
+        });
       }
 
-      return `Path engaged: ${complexLandmark.name} → ${activeLandmark.name}.`;
+      return t("pages:mapView.routeStatus", {
+        from: getLandmarkText(complexLandmark, "name"),
+        to: getLandmarkText(activeLandmark, "name"),
+      });
     }
 
     if (hoveredLandmark) {
-      return `Previewing ${hoveredLandmark.name}. Click to trace the route.`;
+      return getLandmarkText(hoveredLandmark, "name");
     }
 
-    return "Hover or tap a hotspot to explore the Aurora campus.";
+    return t("pages:mapView.hoverHint");
   }, [
     activeLandmark,
     complexLandmark,
     hoveredLandmark,
     landmarkState,
     pendingMasterplan,
+    t,
   ]);
 
   const handlePointerEnter = (landmarkId: string) => {
@@ -390,6 +400,11 @@ export const MapView = () => {
       exit={exitVariant}
       transition={{ duration: 0.3, ease: "easeInOut" }}
     >
+      {/* Page Header with Theme Toggle and Language Switcher */}
+      <div className="absolute top-md z-50 ltr:right-md rtl:left-md">
+        <PageHeader />
+      </div>
+
       <div
         ref={containerRef}
         className="relative h-screen w-screen overflow-hidden bg-slate-950 text-slate-100"
@@ -411,7 +426,7 @@ export const MapView = () => {
         >
           {!mapImageError ? (
             <img
-              alt="Aurora complex campus map"
+              alt={t("pages:mapView.mapAlt")}
               className="pointer-events-none absolute inset-0 h-full w-full object-cover"
               src={MAP_IMAGE}
               onError={() => setMapImageError(true)}
@@ -496,6 +511,13 @@ export const MapView = () => {
               const onPointerEnter = () => handlePointerEnter(landmark.id);
               const onPointerLeave = () => handlePointerLeave(landmark.id);
 
+              // Get translated landmark name
+              const landmarkName = getLandmarkText(landmark, "name");
+              const landmarkDescription = getLandmarkText(
+                landmark,
+                "description"
+              );
+
               // Render based on landmark type, not coords structure
               if (landmark.type === "complex") {
                 // Complex landmarks render as polygonal shapes
@@ -521,7 +543,9 @@ export const MapView = () => {
                         }
                         role="button"
                         tabIndex={0}
-                        aria-label={`Select ${landmark.name}`}
+                        aria-label={t("pages:mapView.selectHotspot", {
+                          name: landmark.name,
+                        })}
                         initial={false}
                         animate={{
                           opacity: isActive || isHovered ? 1 : 0.8,
@@ -542,10 +566,10 @@ export const MapView = () => {
                           <rect
                             x={
                               anchorPoint.x -
-                              (landmark.name.length * 10 + 32) / 2
+                              (landmarkName.length * 10 + 32) / 2
                             }
                             y={anchorPoint.y - 70}
-                            width={landmark.name.length * 10 + 32}
+                            width={landmarkName.length * 10 + 32}
                             height={40}
                             rx={6}
                             className="fill-slate-800/90 stroke-slate-300/50 stroke-1"
@@ -555,8 +579,9 @@ export const MapView = () => {
                             y={anchorPoint.y - 44}
                             textAnchor="middle"
                             className="fill-slate-100 text-[18px] font-bold"
+                            style={{ unicodeBidi: "plaintext" }}
                           >
-                            {landmark.name}
+                            {landmarkName}
                           </text>
                         </g>
                       )}
@@ -588,7 +613,9 @@ export const MapView = () => {
                         }
                         role="button"
                         tabIndex={0}
-                        aria-label={`Select ${landmark.name}`}
+                        aria-label={t("pages:mapView.selectHotspot", {
+                          name: landmark.name,
+                        })}
                         initial={false}
                         animate={{
                           scale: isActive || isHovered ? 1.12 : 1,
@@ -622,20 +649,34 @@ export const MapView = () => {
                       <g style={{ pointerEvents: "none" }}>
                         {/* Background rectangle for label */}
                         <rect
-                          x={point.x + 28}
+                          x={
+                            isRTLMode
+                              ? point.x - (landmarkName.length * 7 + 20) - 28
+                              : point.x + 28
+                          }
                           y={point.y - 14}
-                          width={landmark.name.length * 7 + 20}
+                          width={landmarkName.length * 7 + 20}
                           height={28}
                           rx={3}
                           className="fill-slate-800/90 stroke-slate-300/50 stroke-1"
                         />
                         {/* Label text */}
                         <text
-                          x={point.x + 38}
+                          x={
+                            isRTLMode
+                              ? point.x -
+                                (landmarkName.length * 7 + 20) / 2 -
+                                28
+                              : point.x +
+                                (landmarkName.length * 7 + 20) / 2 +
+                                28
+                          }
                           y={point.y + 3}
+                          textAnchor="middle"
                           className="fill-slate-100 text-[12px] font-medium"
+                          style={{ unicodeBidi: "plaintext" }}
                         >
-                          {landmark.name}
+                          {landmarkName}
                         </text>
                       </g>
 
@@ -650,7 +691,11 @@ export const MapView = () => {
                             transition={{ duration: 0.3, ease: "easeOut" }}
                           >
                             <foreignObject
-                              x={anchorPoint.x + 28}
+                              x={
+                                isRTLMode
+                                  ? anchorPoint.x - 288
+                                  : anchorPoint.x + 28
+                              }
                               y={anchorPoint.y + 24}
                               width={260}
                               height={landmark.image ? 220 : 140}
@@ -662,7 +707,7 @@ export const MapView = () => {
                                     src={`${import.meta.env.BASE_URL}data/${
                                       landmark.image
                                     }`}
-                                    alt={landmark.name}
+                                    alt={landmarkName}
                                     className="w-full h-24 object-cover rounded-md mb-sm"
                                     onError={(e) => {
                                       e.currentTarget.style.display = "none";
@@ -670,24 +715,36 @@ export const MapView = () => {
                                   />
                                 )}
                                 <h3 className="text-sm font-bold text-text-primary mb-xs">
-                                  {landmark.name}
+                                  {landmarkName}
                                 </h3>
-                                {landmark.description && (
+                                {landmarkDescription && (
                                   <p className="text-xs text-text-secondary mb-sm leading-relaxed">
-                                    {landmark.description}
+                                    {landmarkDescription}
                                   </p>
                                 )}
                                 <div className="flex items-center gap-sm text-caption text-text-tertiary">
                                   {typeof landmark.distanceK === "number" && (
                                     <div className="flex items-center gap-xs">
                                       <MapPin className="w-3 h-3" />
-                                      <span>{landmark.distanceK} km away</span>
+                                      <span>
+                                        {t("pages:mapView.distanceAway", {
+                                          distance: numberFormatter.format(
+                                            landmark.distanceK
+                                          ),
+                                        })}
+                                      </span>
                                     </div>
                                   )}
                                   {typeof landmark.timeMin === "number" && (
                                     <div className="flex items-center gap-xs">
                                       <Clock className="w-3 h-3" />
-                                      <span>{landmark.timeMin} min drive</span>
+                                      <span>
+                                        {t("pages:mapView.driveTime", {
+                                          time: numberFormatter.format(
+                                            landmark.timeMin
+                                          ),
+                                        })}
+                                      </span>
                                     </div>
                                   )}
                                 </div>
@@ -713,14 +770,13 @@ export const MapView = () => {
           <div className="flex w-full max-w-xl flex-col gap-md">
             <div className="pointer-events-auto space-y-md">
               <span className="text-xs font-semibold uppercase tracking-[0.5em] text-primary">
-                Aurora Complex
+                {t("pages:mapView.complexName")}
               </span>
-              <h1 className="text-heading-1 font-bold">Immersive Map View</h1>
+              <h1 className="text-heading-1 font-bold">
+                {t("pages:mapView.title")}
+              </h1>
               <p className="text-sm text-text-primary leading-relaxed">
-                Discover the campus from a bird&apos;s-eye perspective. Hover
-                over a hotspot to learn more, trace animated routes from the
-                gateway to nearby points of interest, and enter the master plan
-                through the complex marker.
+                {t("pages:mapView.subtitle")}
               </p>
             </div>
           </div>

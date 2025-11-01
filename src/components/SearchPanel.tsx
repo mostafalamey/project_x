@@ -1,27 +1,30 @@
 import { useMemo, type ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { UnitFilters } from "../data/enrichment";
 
-type SearchPanelProps = {
-  filters:
-    | UnitFilters
-    | {
-        minArea?: number;
-        maxArea?: number;
-        bedrooms?: number;
-        bathrooms?: number;
-      };
-  onFiltersChange: (filters: any) => void;
+type BaseFilters = {
+  minArea?: number;
+  maxArea?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  availability?: UnitFilters["availability"];
+};
+
+type SearchPanelProps<T extends BaseFilters = BaseFilters> = {
+  filters: T;
+  onFiltersChange: (filters: T) => void;
   resultCount?: number;
   showAvailability?: boolean;
 };
 
-export const SearchPanel = ({
+export const SearchPanel = <T extends BaseFilters = BaseFilters>({
   filters,
   onFiltersChange,
   resultCount,
   showAvailability = true,
-}: SearchPanelProps) => {
+}: SearchPanelProps<T>) => {
+  const { t } = useTranslation("pages");
   const bedroomOptions = useMemo(() => [1, 2, 3, 4, 5], []);
   const bathroomOptions = useMemo(() => [1, 2, 3, 4], []);
   const availabilityOptions = useMemo(
@@ -58,16 +61,18 @@ export const SearchPanel = ({
   };
 
   const handleClearFilters = () => {
-    onFiltersChange({});
+    onFiltersChange({} as T);
   };
 
   return (
     <section className="rounded-card bg-surface-elevated p-lg shadow-elevated backdrop-blur-sm">
       <header className="mb-md flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-text-primary">Unit Search</h2>
+        <h2 className="text-lg font-semibold text-text-primary">
+          {t("unitsView.search.title")}
+        </h2>
         {resultCount !== undefined && (
           <span className="text-xs uppercase tracking-widest text-text-accent">
-            {resultCount} {resultCount === 1 ? "unit" : "units"}
+            {t("unitsView.search.resultCount", { count: resultCount })}
           </span>
         )}
       </header>
@@ -79,13 +84,13 @@ export const SearchPanel = ({
             htmlFor="min-area"
             className="text-xs font-medium uppercase tracking-wide text-text-secondary"
           >
-            Min Area (m²)
+            {t("unitsView.search.minAreaLabel")}
           </label>
           <input
             id="min-area"
             type="number"
             min="0"
-            placeholder="e.g., 80"
+            placeholder={t("unitsView.search.minAreaPlaceholder")}
             value={filters.minArea ?? ""}
             onChange={handleMinAreaChange}
             className="h-10 rounded-input border border-border bg-bg-input px-sm text-sm text-text-primary placeholder-text-tertiary transition-focus focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-focus-ring"
@@ -97,13 +102,13 @@ export const SearchPanel = ({
             htmlFor="max-area"
             className="text-xs font-medium uppercase tracking-wide text-text-secondary"
           >
-            Max Area (m²)
+            {t("unitsView.search.maxAreaLabel")}
           </label>
           <input
             id="max-area"
             type="number"
             min="0"
-            placeholder="e.g., 150"
+            placeholder={t("unitsView.search.maxAreaPlaceholder")}
             value={filters.maxArea ?? ""}
             onChange={handleMaxAreaChange}
             className="h-10 rounded-input border border-border bg-bg-input px-sm text-sm text-text-primary placeholder-text-tertiary transition-focus focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-focus-ring"
@@ -116,7 +121,7 @@ export const SearchPanel = ({
             htmlFor="bedrooms"
             className="text-xs font-medium uppercase tracking-wide text-text-secondary"
           >
-            Bedrooms
+            {t("unitsView.search.bedroomsLabel")}
           </label>
           <select
             id="bedrooms"
@@ -124,10 +129,10 @@ export const SearchPanel = ({
             onChange={handleBedroomsChange}
             className="h-10 rounded-input border border-border bg-bg-input px-sm text-sm text-text-primary transition-focus focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-focus-ring"
           >
-            <option value="">Any</option>
+            <option value="">{t("unitsView.search.anyOption")}</option>
             {bedroomOptions.map((count) => (
               <option key={count} value={count}>
-                {count} {count === 1 ? "Bedroom" : "Bedrooms"}
+                {t("unitsView.search.bedroomOption", { count })}
               </option>
             ))}
           </select>
@@ -139,7 +144,7 @@ export const SearchPanel = ({
             htmlFor="bathrooms"
             className="text-xs font-medium uppercase tracking-wide text-text-secondary"
           >
-            Bathrooms
+            {t("unitsView.search.bathroomsLabel")}
           </label>
           <select
             id="bathrooms"
@@ -147,10 +152,10 @@ export const SearchPanel = ({
             onChange={handleBathroomsChange}
             className="h-10 rounded-input border border-border bg-bg-input px-sm text-sm text-text-primary transition-focus focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-focus-ring"
           >
-            <option value="">Any</option>
+            <option value="">{t("unitsView.search.anyOption")}</option>
             {bathroomOptions.map((count) => (
               <option key={count} value={count}>
-                {count} {count === 1 ? "Bathroom" : "Bathrooms"}
+                {t("unitsView.search.bathroomOption", { count })}
               </option>
             ))}
           </select>
@@ -163,7 +168,7 @@ export const SearchPanel = ({
               htmlFor="availability"
               className="text-xs font-medium uppercase tracking-wide text-text-secondary"
             >
-              Availability
+              {t("unitsView.search.availabilityLabel")}
             </label>
             <select
               id="availability"
@@ -177,7 +182,7 @@ export const SearchPanel = ({
             >
               {availabilityOptions.map((status) => (
                 <option key={status} value={status}>
-                  {status}
+                  {t(`unitsView.search.availability.${status.toLowerCase()}`)}
                 </option>
               ))}
             </select>
@@ -189,7 +194,7 @@ export const SearchPanel = ({
         onClick={handleClearFilters}
         className="w-full rounded-button border border-border bg-surface-base px-md py-sm text-sm font-medium text-text-primary transition-hover hover:bg-surface-hover hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
       >
-        Clear All Filters
+        {t("unitsView.search.clear")}
       </button>
     </section>
   );

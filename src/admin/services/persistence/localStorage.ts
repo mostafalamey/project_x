@@ -75,7 +75,6 @@ export function clearAll(): void {
     );
 
     keys.forEach((key) => localStorage.removeItem(key));
-    console.log(`[LocalStorage] Cleared ${keys.length} items`);
   } catch (error) {
     console.error("[LocalStorage] Failed to clear all items:", error);
   }

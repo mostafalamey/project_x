@@ -1,0 +1,26 @@
+{
+    "back": "رجوع",
+    "backTo": "العودة إلى {{destination}}",
+    "backToMap": "العودة إلى الخريطة",
+    "backToMasterPlan": "العودة إلى المخطط الرئيسي",
+    "backToBuilding": "العودة إلى المبنى",
+    "backToFloor": "العودة إلى الطابق",
+    "backToModels": "العودة إلى النماذج",
+    "menu": {
+        "home": "الرئيسية",
+        "map": "الخريطة",
+        "masterPlan": "المخطط الرئيسي",
+        "buildings": "المباني",
+        "units": "الوحدات",
+        "tours": "الجولات",
+        "models": "النماذج ثلاثية الأبعاد",
+        "admin": "الإدارة"
+    },
+    "breadcrumbs": {
+        "home": "الرئيسية",
+        "map": "الخريطة",
+        "building": "المبنى",
+        "floor": "الطابق",
+        "unit": "الوحدة"
+    }
+}

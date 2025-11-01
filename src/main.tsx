@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 
 import App from "./App";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import "./i18n"; // Initialize i18n
 import "./styles/index.css";
 
 const container = document.getElementById("root");

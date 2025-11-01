@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { BackNav } from "../components/BackNav";
@@ -255,6 +256,7 @@ const handleKeyActivation = (
 
 export const MasterPlanView = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("pages");
   const { startTransition, direction } = useTransitionContext();
   const { setTourBackLocation } = useNavigationStore();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -774,15 +776,10 @@ export const MasterPlanView = () => {
       const currentAngleParam = searchParams.get("angle") || "0";
       const backUrl = `/masterplan?angle=${currentAngleParam}`;
 
-      console.log(
-        "DEBUG MasterPlanView: Setting tour back location to:",
-        backUrl
-      );
       setTourBackLocation(backUrl);
 
       // Also pass the angle in the tour URL so TourViewer can construct the back link
       const url = `/tour/${tourId}?scene=${tourPointId}&backAngle=${currentAngleParam}`;
-      console.log("DEBUG MasterPlanView: Navigating to:", url);
       navigate(url);
     }
   };
@@ -807,34 +804,39 @@ export const MasterPlanView = () => {
 
   const statusMessage = useMemo(() => {
     if (state.status === "loading") {
-      return "Loading master plan angles...";
+      return t("masterPlanView.statusMessages.loadingAngles");
     }
 
     if (state.status === "error") {
-      return state.error ?? "Unable to load master plan right now.";
+      return state.error ?? t("masterPlanView.statusMessages.unableToLoad");
     }
 
     if (sequenceState.playing) {
-      return "Animating camera rotation...";
+      return t("masterPlanView.statusMessages.animatingRotation");
     }
 
     if (hoveredPanoId) {
       const pano = panoramaHotspots.find((p) => p.id === hoveredPanoId);
       return pano
-        ? `Click to explore ${pano.name} 360°`
-        : "Click to explore 360° view";
+        ? t("masterPlanView.statusMessages.explore360", { name: pano.name })
+        : t("masterPlanView.statusMessages.explore360Default");
     }
 
     if (hoveredBuildingId && activeStatusBuilding) {
-      return `Previewing ${activeStatusBuilding.name}.`; // maybe include stats
+      return t("masterPlanView.statusMessages.previewingBuilding", {
+        name: activeStatusBuilding.name,
+      });
     }
 
     if (selectedBuildingId && activeStatusBuilding) {
-      return `Launching ${activeStatusBuilding.name} elevation...`;
+      return t("masterPlanView.statusMessages.launchingBuilding", {
+        name: activeStatusBuilding.name,
+      });
     }
 
-    return "Swipe or use controls to rotate the plan, then select a building.";
+    return t("masterPlanView.statusMessages.swipeToRotate");
   }, [
+    t,
     activeStatusBuilding,
     hoveredBuildingId,
     hoveredPanoId,
@@ -1141,17 +1143,16 @@ export const MasterPlanView = () => {
         <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-lg">
           <div className="flex w-full items-start justify-between gap-md">
             <div className="pointer-events-auto flex flex-col gap-sm">
-              <BackNav label="Map" to="/" />
+              <BackNav label={t("navigation:backToMap")} to="/" />
               <div>
                 <span className="text-xs font-semibold uppercase tracking-[0.5em] text-primary">
                   Aurora Complex
                 </span>
                 <h1 className="mt-sm text-heading-1 font-bold">
-                  Master Plan View
+                  {t("masterPlanView.pageTitle")}
                 </h1>
                 <p className="mt-sm max-w-xl text-sm text-text-primary">
-                  Rotate through cinematic angles, explore up to four hotspots
-                  per building, and dive straight into elevation views.
+                  {t("masterPlanView.pageSubtitle")}
                 </p>
               </div>
             </div>
@@ -1166,20 +1167,29 @@ export const MasterPlanView = () => {
                     sequenceState.playing ||
                     zoomPanState.zoom !== 1
                   }
-                  aria-label="View previous master plan angle"
+                  aria-label={t("masterPlanView.prevAngleAriaLabel")}
                 >
-                  Prev
+                  {t("masterPlanView.prevButton")}
                 </button>
                 <div
                   className="rounded-badge border border-border-light px-md py-sm"
                   role="status"
                   aria-live="polite"
-                  aria-label={`Currently viewing angle ${normalizedIndex + 1}${
-                    state.data ? ` of ${state.data.angles.length}` : ""
-                  }`}
+                  aria-label={
+                    state.data
+                      ? t("masterPlanView.angleAriaLabel", {
+                          current: normalizedIndex + 1,
+                          total: state.data.angles.length,
+                        })
+                      : undefined
+                  }
                 >
-                  Angle {normalizedIndex + 1}
-                  {state.data ? ` / ${state.data.angles.length}` : ""}
+                  {state.data
+                    ? t("masterPlanView.angleLabel", {
+                        current: normalizedIndex + 1,
+                        total: state.data.angles.length,
+                      })
+                    : ""}
                 </div>
                 <button
                   type="button"
@@ -1190,15 +1200,15 @@ export const MasterPlanView = () => {
                     sequenceState.playing ||
                     zoomPanState.zoom !== 1
                   }
-                  aria-label="View next master plan angle"
+                  aria-label={t("masterPlanView.nextAngleAriaLabel")}
                 >
-                  Next
+                  {t("masterPlanView.nextButton")}
                 </button>
               </div>
               <span className="text-caption uppercase tracking-[0.45em] text-text-tertiary">
                 {zoomPanState.zoom === 1
-                  ? "Swipe horizontally or use controls"
-                  : "Reset zoom to switch angles"}
+                  ? t("masterPlanView.swipeHint")
+                  : t("masterPlanView.resetZoomHint")}
               </span>
               <BrowseModelsButton
                 isOpen={showSearch}
@@ -1243,12 +1253,14 @@ export const MasterPlanView = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="mb-lg flex items-center justify-between">
-                  <h2 className="text-heading-3 font-bold">Browse Models</h2>
+                  <h2 className="text-heading-3 font-bold">
+                    {t("masterPlanView.browseModelsTitle")}
+                  </h2>
                   <button
                     type="button"
                     onClick={() => setShowSearch(false)}
                     className="rounded-button p-sm transition-hover hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                    aria-label="Close search panel"
+                    aria-label={t("masterPlanView.closeSearchAriaLabel")}
                   >
                     <X className="h-6 w-6" />
                   </button>
@@ -1258,7 +1270,9 @@ export const MasterPlanView = () => {
                   <div className="flex items-center justify-center py-2xl">
                     <div className="text-center">
                       <Loader2 className="mb-md inline-block h-12 w-12 animate-spin text-primary" />
-                      <p className="text-text-secondary">Loading models...</p>
+                      <p className="text-text-secondary">
+                        {t("masterPlanView.loadingModels")}
+                      </p>
                     </div>
                   </div>
                 ) : modelsState.status === "error" ? (

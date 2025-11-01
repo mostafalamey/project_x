@@ -28,7 +28,6 @@ export async function saveAutosave<T>(key: string, data: T): Promise<void> {
       data: JSON.stringify(data),
       timestamp: Date.now(),
     });
-    console.log(`[Autosave] Saved: ${key}`);
   } catch (error) {
     console.error(`[Autosave] Failed to save ${key}:`, error);
     throw error;
@@ -81,7 +80,6 @@ export async function getAutosaveTimestamp(
 export async function deleteAutosave(key: string): Promise<void> {
   const autosaveKey = `${AUTOSAVE_KEY_PREFIX}${key}`;
   await db.autosave.delete(autosaveKey);
-  console.log(`[Autosave] Deleted: ${key}`);
 }
 
 /**
@@ -90,7 +88,6 @@ export async function deleteAutosave(key: string): Promise<void> {
 export async function clearAllAutosaves(): Promise<void> {
   const count = await db.autosave.count();
   await db.autosave.clear();
-  console.log(`[Autosave] Cleared ${count} autosave snapshots`);
 }
 
 /**

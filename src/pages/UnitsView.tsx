@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { BackNav } from "../components/BackNav";
+import { I18nDebug } from "../components/I18nDebug";
+import { PageHeader } from "../components/PageHeader";
 import { SearchPanel } from "../components/SearchPanel";
 import { UnitList } from "../components/UnitList";
 import {
@@ -25,6 +28,7 @@ const initialState = <T,>(): FetchState<T> => ({
 });
 
 export const UnitsView = () => {
+  const { t } = useTranslation(["pages", "navigation", "common"]);
   const [unitsState, setUnitsState] =
     useState<FetchState<Unit[]>>(initialState);
   const [modelsState, setModelsState] =
@@ -125,7 +129,8 @@ export const UnitsView = () => {
     unitsState.status === "loading" || modelsState.status === "loading";
   const hasError =
     unitsState.status === "error" || modelsState.status === "error";
-  const errorMessage = unitsState.error || modelsState.error;
+  const errorMessage =
+    unitsState.error || modelsState.error || t("common:messages.errorLoading");
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-slate-100">
@@ -134,14 +139,19 @@ export const UnitsView = () => {
 
       {/* Content */}
       <div className="relative z-10">
-        <BackNav to="/" label="Back to Map" />
+        <div className="flex items-start justify-between p-md">
+          <BackNav to="/" label={t("navigation:backToMap")} />
+          <PageHeader />
+        </div>
 
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <header className="mb-8">
-            <h1 className="mb-2 text-4xl font-bold">Browse Units</h1>
+            <h1 className="mb-2 text-4xl font-bold">
+              {t("pages:unitsView.title")}
+            </h1>
             <p className="text-lg text-slate-400">
-              Filter and explore available units in the complex
+              {t("pages:unitsView.subtitle")}
             </p>
           </header>
 
@@ -150,7 +160,9 @@ export const UnitsView = () => {
             <div className="flex items-center justify-center py-2xl">
               <div className="text-center">
                 <div className="mb-md inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-700 border-t-emerald-500" />
-                <p className="text-slate-400">Loading units...</p>
+                <p className="text-slate-400">
+                  {t("pages:unitsView.loadingUnits")}
+                </p>
               </div>
             </div>
           )}
@@ -182,6 +194,9 @@ export const UnitsView = () => {
           )}
         </div>
       </div>
+
+      {/* Debug Component */}
+      {import.meta.env.DEV && <I18nDebug />}
     </div>
   );
 };

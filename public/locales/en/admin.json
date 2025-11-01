@@ -1,0 +1,40 @@
+{
+    "dashboard": {
+        "title": "Configuration Dashboard",
+        "subtitle": "Manage your project settings",
+        "welcome": "Welcome to the admin panel"
+    },
+    "editors": {
+        "map": "Map Editor",
+        "masterPlan": "Master Plan Editor",
+        "building": "Building Editor",
+        "floor": "Floor Editor",
+        "landmark": "Landmark Editor",
+        "tour": "Tour Editor",
+        "model": "Model Editor"
+    },
+    "properties": {
+        "general": "General",
+        "appearance": "Appearance",
+        "position": "Position",
+        "dimensions": "Dimensions",
+        "settings": "Settings"
+    },
+    "toolbar": {
+        "select": "Select",
+        "move": "Move",
+        "rotate": "Rotate",
+        "scale": "Scale",
+        "delete": "Delete",
+        "undo": "Undo",
+        "redo": "Redo"
+    },
+    "export": {
+        "title": "Export Project",
+        "description": "Export your configuration",
+        "exportAll": "Export All",
+        "exportSelected": "Export Selected",
+        "autosave": "Auto-save",
+        "lastSaved": "Last saved: {{time}}"
+    }
+}

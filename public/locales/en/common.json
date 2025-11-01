@@ -1,0 +1,120 @@
+{
+    "buttons": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "close": "Close",
+        "delete": "Delete",
+        "edit": "Edit",
+        "add": "Add",
+        "remove": "Remove",
+        "upload": "Upload",
+        "download": "Download",
+        "export": "Export",
+        "import": "Import",
+        "search": "Search",
+        "clear": "Clear",
+        "apply": "Apply",
+        "reset": "Reset",
+        "confirm": "Confirm",
+        "continue": "Continue",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "finish": "Finish"
+    },
+    "status": {
+        "loading": "Loading...",
+        "saving": "Saving...",
+        "saved": "Saved",
+        "error": "Error",
+        "success": "Success",
+        "processing": "Processing..."
+    },
+    "messages": {
+        "noData": "No data available",
+        "noResults": "No results found",
+        "errorLoading": "Error loading data",
+        "errorSaving": "Error saving data",
+        "confirmDelete": "Are you sure you want to delete this?",
+        "unsavedChanges": "You have unsaved changes"
+    },
+    "labels": {
+        "name": "Name",
+        "description": "Description",
+        "type": "Type",
+        "status": "Status",
+        "date": "Date",
+        "time": "Time",
+        "location": "Location",
+        "details": "Details"
+    },
+    "themeToggle": {
+        "ariaLabel": "Switch to {{mode}} mode",
+        "modes": {
+            "light": "light",
+            "dark": "dark"
+        }
+    },
+    "languageSwitcher": {
+        "ariaLabel": "Select language",
+        "currentLanguage": "Current language"
+    },
+    "landmarks": {
+        "f2d6252a-93d6-4e06-b605-9ff7083567ec": {
+            "name": "Aurora Complex",
+            "description": "A vast and elegant living space"
+        },
+        "7764e48d-1174-4270-a92e-667d74b20e18": {
+            "name": "Misr University",
+            "description": "Misr University"
+        },
+        "7b3a761c-27b0-4764-be6e-f1d66f06d34e": {
+            "name": "Misr Hospital",
+            "description": "Misr Hospital"
+        },
+        "a98631da-912f-4c5d-81c2-43ff08b6fc80": {
+            "name": "Monorail Station",
+            "description": "Monorail Station"
+        },
+        "b8d461bc-f2d6-4e89-9e12-72464dc200f3": {
+            "name": "Shooting Club",
+            "description": "Shooting Club"
+        }
+    },
+    "models": {
+        "modelPreview": "Model Preview",
+        "modelId": "Model {{id}}",
+        "bed_one": "Bed",
+        "bed_other": "Beds",
+        "bath_one": "Bath",
+        "bath_other": "Baths",
+        "clickToView": "Click to view details",
+        "tourBadge": "360° Tour",
+        "browseModels": "Browse Models",
+        "hideModels": "Hide Models",
+        "browseModelsAriaShow": "Browse available unit models",
+        "browseModelsAriaHide": "Hide model browser panel",
+        "noModels": "No models match your search criteria. Try adjusting your filters."
+    },
+    "bedrooms_one": "{{count}} Bedroom",
+    "bedrooms_other": "{{count}} Bedrooms",
+    "bathrooms_one": "{{count}} Bathroom",
+    "bathrooms_other": "{{count}} Bathrooms",
+    "availability": {
+        "available": "Available",
+        "reserved": "Reserved",
+        "sold": "Sold"
+    },
+    "modelTitles": {
+        "A-2": "Elegant 2-Bedroom Suite",
+        "A-3": "A Modern 3-Bedroom Apartment"
+    },
+    "modelDescriptions": {
+        "A-2": "Sophisticated design with efficient use of space.",
+        "A-3": "Spacious design with comfortable spaces"
+    },
+    "buildingNames": {
+        "B-11": "North Tower",
+        "A-12": "South Tower"
+    }
+}

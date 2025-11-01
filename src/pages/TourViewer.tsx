@@ -151,8 +151,6 @@ export const TourViewer = () => {
     const tourData = state.data;
 
     const preloadAllImages = async () => {
-      console.log("TourViewer: Starting to preload all panorama images...");
-
       // Set a timeout to ensure viewer initializes even if preloading hangs
       const timeoutPromise = new Promise<void>((resolve) => {
         setTimeout(() => {
@@ -181,7 +179,6 @@ export const TourViewer = () => {
           const img = new Image();
           img.onload = () => {
             preloadedImagesRef.current.set(scene.id, true);
-            console.log(`TourViewer: Preloaded image for scene ${scene.id}`);
             resolve();
           };
           img.onerror = (error) => {
@@ -200,7 +197,6 @@ export const TourViewer = () => {
       try {
         // Race between preloading all images and timeout
         await Promise.race([Promise.all(imagePromises), timeoutPromise]);
-        console.log("TourViewer: All panorama images preload attempted");
       } catch (error) {
         console.error("TourViewer: Error preloading images:", error);
       } finally {
@@ -267,13 +263,6 @@ export const TourViewer = () => {
         throw new Error("No image URL found for scene");
       }
 
-      console.log("TourViewer: Creating viewer instance for first time");
-      console.log("TourViewer: Initial scene image URL:", sceneImageUrl);
-      console.log(
-        "TourViewer: Full URL will be:",
-        window.location.origin + sceneImageUrl
-      );
-
       // Create new viewer instance
       const viewer = new Viewer({
         container: container,
@@ -314,7 +303,6 @@ export const TourViewer = () => {
 
       // Define marker click handler
       const handleMarkerClick = (e: any) => {
-        console.log("TourViewer: Marker clicked:", e.marker);
         const hotspot = e.marker.data as {
           id: string;
           targetSceneId: string;
@@ -332,12 +320,6 @@ export const TourViewer = () => {
             const position = viewerRef.current.getPosition();
             const zoomLevel = viewerRef.current.getZoomLevel();
 
-            console.log("TourViewer: Capturing camera orientation:", {
-              yaw: position.yaw,
-              pitch: position.pitch,
-              zoom: zoomLevel,
-            });
-
             setTargetOrientation({
               yaw: position.yaw,
               pitch: position.pitch,
@@ -351,12 +333,7 @@ export const TourViewer = () => {
 
       // Handle viewer ready - add initial markers
       viewer.addEventListener("ready", () => {
-        console.log("TourViewer: Viewer is ready, adding initial markers");
-
         const hotspots = getSceneHotspots(currentScene);
-        console.log(
-          `TourViewer: Initial scene "${currentScene.id}" has ${hotspots.length} hotspots`
-        );
 
         if (hotspots.length > 0 && markersPlugin) {
           const markers = hotspots.map((hotspot) => ({
@@ -408,7 +385,6 @@ export const TourViewer = () => {
           }));
 
           markersPlugin.setMarkers(markers);
-          console.log(`TourViewer: Added ${markers.length} initial markers`);
 
           // Add event listener for initial markers
           markersPlugin.addEventListener("select-marker", handleMarkerClick);
@@ -455,11 +431,8 @@ export const TourViewer = () => {
     // Check if this is still the initial scene (don't update on first render)
     const currentPanorama = viewer.config.panorama;
     if (currentPanorama === sceneImageUrl) {
-      console.log("TourViewer: Skipping update, already on this scene");
       return;
     }
-
-    console.log(`TourViewer: Switching to scene "${currentScene.id}"`);
 
     // Apply target orientation if available, otherwise use scene's initial view
     const newYaw = targetOrientation?.yaw ?? currentScene.initialView?.yaw ?? 0;
@@ -476,7 +449,6 @@ export const TourViewer = () => {
 
     // Define marker click handler
     const handleMarkerClick = (e: any) => {
-      console.log("TourViewer: Marker clicked:", e.marker);
       const hotspot = e.marker.data as {
         id: string;
         targetSceneId: string;
@@ -493,12 +465,6 @@ export const TourViewer = () => {
         if (viewerRef.current) {
           const position = viewerRef.current.getPosition();
           const zoomLevel = viewerRef.current.getZoomLevel();
-
-          console.log("TourViewer: Capturing camera orientation:", {
-            yaw: position.yaw,
-            pitch: position.pitch,
-            zoom: zoomLevel,
-          });
 
           setTargetOrientation({
             yaw: position.yaw,
@@ -523,8 +489,6 @@ export const TourViewer = () => {
         showLoader: false, // Don't show loader since images are preloaded
       })
       .then(() => {
-        console.log(`TourViewer: Panorama switched to "${currentScene.id}"`);
-
         // Clear transitioning state
         setIsTransitioning(false);
 
@@ -536,9 +500,6 @@ export const TourViewer = () => {
         // Update markers for new scene
         if (markersPlugin) {
           const hotspots = getSceneHotspots(currentScene);
-          console.log(
-            `TourViewer: Scene "${currentScene.id}" has ${hotspots.length} hotspots`
-          );
 
           // Remove old event listener
           markersPlugin.removeEventListener("select-marker", handleMarkerClick);
@@ -593,7 +554,6 @@ export const TourViewer = () => {
             }));
 
             markersPlugin.setMarkers(markers);
-            console.log(`TourViewer: Updated ${markers.length} markers`);
 
             // Add event listener after markers are set
             markersPlugin.addEventListener("select-marker", handleMarkerClick);
@@ -609,24 +569,16 @@ export const TourViewer = () => {
   }, [currentScene, state.data, allPanoramasPreloaded, viewerReady]);
 
   const backHref = useMemo(() => {
-    // First priority: Use stored back location from Zustand
-    console.log("DEBUG: tourBackLocation from Zustand:", tourBackLocation);
-    console.log("DEBUG: state.data:", state.data);
-    console.log("DEBUG: state.status:", state.status);
-
     if (tourBackLocation) {
-      console.log("DEBUG: Using Zustand back location:", tourBackLocation);
       return tourBackLocation;
     }
 
     // Fallback to URL parameter-based logic
     // Check if this is a street-view tour (non-unit tour)
     if (state.data && state.data.modelId === null) {
-      console.log("DEBUG: Street-view tour, going to masterplan");
       // Check if we have a backAngle parameter
       const backAngle = searchParams.get("backAngle");
       if (backAngle) {
-        console.log("DEBUG: Using backAngle parameter:", backAngle);
         return `/masterplan?angle=${backAngle}`;
       }
       return "/masterplan";
@@ -636,17 +588,6 @@ export const TourViewer = () => {
     const building = searchParams.get("building");
     const floor = searchParams.get("floor");
     const angle = searchParams.get("angle");
-
-    console.log(
-      "DEBUG backHref - unit:",
-      unit,
-      "building:",
-      building,
-      "floor:",
-      floor,
-      "angle:",
-      angle
-    );
 
     // If we have building and floor but no unit, go back to floor plan
     if (building && floor && !unit) {
@@ -658,7 +599,6 @@ export const TourViewer = () => {
       const result = query.length
         ? `/building/${building}/floor/${floor}?${query}`
         : `/building/${building}/floor/${floor}`;
-      console.log("DEBUG: Going back to floor plan:", result);
       return result;
     }
 
@@ -676,11 +616,9 @@ export const TourViewer = () => {
       }
       const query = params.toString();
       const result = query.length ? `/unit/${unit}?${query}` : `/unit/${unit}`;
-      console.log("DEBUG: Going back to unit:", result);
       return result;
     }
 
-    console.log("DEBUG: Default - going to masterplan");
     return "/masterplan";
   }, [tourBackLocation, searchParams, state.data]);
 
@@ -735,12 +673,6 @@ export const TourViewer = () => {
     if (viewerRef.current) {
       const position = viewerRef.current.getPosition();
       const zoomLevel = viewerRef.current.getZoomLevel();
-
-      console.log("TourViewer: Capturing camera orientation for scene list:", {
-        yaw: position.yaw,
-        pitch: position.pitch,
-        zoom: zoomLevel,
-      });
 
       setTargetOrientation({
         yaw: position.yaw,

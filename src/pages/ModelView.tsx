@@ -8,6 +8,7 @@ import {
   Video,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { BackNav } from "../components/BackNav";
@@ -36,6 +37,7 @@ export const ModelView = () => {
   const { modelId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation(["pages", "common"]);
   const { direction } = useTransitionContext();
   const { setTourBackLocation, modelBackLocation, clearModelBackLocation } =
     useNavigationStore();
@@ -45,17 +47,6 @@ export const ModelView = () => {
   const [imageError, setImageError] = useState(false);
   const [tourId, setTourId] = useState<string | null>(null);
   const [allModels, setAllModels] = useState<Model[]>([]);
-
-  // Debug: Log URL parameters
-  useEffect(() => {
-    console.log("ModelView URL params:", {
-      modelId,
-      building: searchParams.get("building"),
-      floor: searchParams.get("floor"),
-      angle: searchParams.get("angle"),
-      unit: searchParams.get("unit"),
-    });
-  }, [modelId, searchParams]);
 
   // Load model data
   useEffect(() => {
@@ -123,12 +114,6 @@ export const ModelView = () => {
         const detectedTourId = await getTourIdForModel(modelId, allModels);
 
         if (!cancelled) {
-          console.log(
-            `ModelView: Tour detection for model ${modelId}:`,
-            detectedTourId
-              ? `Found tour ${detectedTourId}`
-              : "No tour available"
-          );
           setTourId(detectedTourId);
         }
       } catch (error) {
@@ -150,7 +135,6 @@ export const ModelView = () => {
   const backHref = useMemo(() => {
     // First priority: Use stored back location from Zustand
     if (modelBackLocation) {
-      console.log("ModelView: Using Zustand back location:", modelBackLocation);
       return modelBackLocation;
     }
 
@@ -161,17 +145,17 @@ export const ModelView = () => {
   const backLabel = useMemo(() => {
     if (modelBackLocation) {
       if (modelBackLocation.includes("/floor/")) {
-        return "Back to Floor Plan";
+        return t("navigation:backToFloor");
       }
       if (modelBackLocation.includes("/building/")) {
-        return "Back to Building";
+        return t("navigation:backToBuilding");
       }
       if (modelBackLocation.includes("/masterplan")) {
-        return "Back to Master Plan";
+        return t("navigation:backToMasterPlan");
       }
     }
-    return "Back to Models";
-  }, [modelBackLocation]);
+    return t("navigation:backToModels");
+  }, [modelBackLocation, t]);
 
   const handleBack = () => {
     clearModelBackLocation();
@@ -301,7 +285,7 @@ export const ModelView = () => {
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center">
             <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-emerald-500" />
-            <p className="text-lg text-slate-400">Loading model...</p>
+            <p className="text-lg text-slate-400">{t("modelView.loading")}</p>
           </div>
         </div>
       </motion.div>
@@ -326,14 +310,14 @@ export const ModelView = () => {
           <div className="max-w-md text-center">
             <div className="mb-4 text-6xl">⚠️</div>
             <h2 className="mb-2 text-2xl font-bold text-slate-100">
-              Model Not Found
+              {t("modelView.notFound")}
             </h2>
             <p className="mb-6 text-slate-400">{state.error}</p>
             <button
               onClick={() => navigate("/masterplan")}
               className="rounded-lg bg-emerald-500 px-6 py-3 font-semibold text-slate-900 transition hover:bg-emerald-400"
             >
-              Browse Models
+              {t("modelView.browseModels")}
             </button>
           </div>
         </div>
@@ -383,7 +367,9 @@ export const ModelView = () => {
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-950">
               <div className="text-center">
                 <div className="mb-4 text-6xl text-slate-600">📦</div>
-                <p className="text-slate-400">Image not available</p>
+                <p className="text-slate-400">
+                  {t("modelView.imageNotAvailable")}
+                </p>
               </div>
             </div>
           )}
@@ -401,33 +387,38 @@ export const ModelView = () => {
               <BackNav label={backLabel} to={backHref} />
               <div className="max-w-xl">
                 <span className="text-xs font-semibold uppercase tracking-[0.5em] text-primary">
-                  Model {model?.id}
+                  {t("modelView.modelLabel", { id: model?.id })}
                 </span>
                 <h1 className="mt-sm text-heading-1 font-bold">
-                  {model?.title ?? `Model ${model?.id}`}
+                  {t(`common:modelTitles.${model?.id}`, {
+                    defaultValue:
+                      model?.title ??
+                      t("modelView.modelFallback", { id: model?.id }),
+                  })}
                 </h1>
                 <div className="mt-md flex flex-wrap items-center gap-md text-text-primary">
                   <div className="flex items-center gap-sm">
                     <BedDouble className="h-5 w-5 text-primary" />
                     <span className="text-sm">
-                      {model?.bedrooms}{" "}
-                      {model?.bedrooms === 1 ? "Bedroom" : "Bedrooms"}
+                      {t("common:bedrooms", { count: model?.bedrooms })}
                     </span>
                   </div>
                   <div className="flex items-center gap-sm">
                     <Bath className="h-5 w-5 text-primary" />
                     <span className="text-sm">
-                      {model?.bathrooms}{" "}
-                      {model?.bathrooms === 1 ? "Bathroom" : "Bathrooms"}
+                      {t("common:bathrooms", { count: model?.bathrooms })}
                     </span>
                   </div>
                   <div className="rounded-badge border border-border px-md py-sm text-xs font-semibold uppercase tracking-[0.45em]">
                     {model?.areaM2} m²
                   </div>
                 </div>
-                {model?.description && (
+                {(model?.description ||
+                  t(`common:modelDescriptions.${model?.id}`, "") !== "") && (
                   <p className="mt-sm text-sm text-text-primary leading-relaxed">
-                    {model.description}
+                    {t(`common:modelDescriptions.${model?.id}`, {
+                      defaultValue: model?.description ?? "",
+                    })}
                   </p>
                 )}
                 {tourId && (
@@ -449,7 +440,6 @@ export const ModelView = () => {
                         ? `/model/${modelId}?${query}`
                         : `/model/${modelId}`;
 
-                      console.log("ModelView: Storing back location:", backUrl);
                       setTourBackLocation(backUrl);
 
                       // Navigate to tour (no query params needed!)
@@ -458,7 +448,7 @@ export const ModelView = () => {
                     className="mt-md inline-flex items-center gap-sm rounded-badge bg-primary px-md py-sm text-sm font-semibold text-text-inverse transition-hover hover:bg-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   >
                     <Video className="h-4 w-4" />
-                    <span>Explore 360° Virtual Tour</span>
+                    <span>{t("modelView.virtualTour")}</span>
                   </button>
                 )}
               </div>
@@ -468,10 +458,13 @@ export const ModelView = () => {
             {rotation360 && imageLoaded && !imageError && (
               <div className="pointer-events-auto flex flex-col items-end gap-sm text-xs font-semibold uppercase tracking-[0.45em] text-text-secondary">
                 <div className="rounded-badge border border-border px-md py-sm">
-                  Frame {currentFrame + 1} / {rotation360.frameCount}
+                  {t("modelView.frameCounter", {
+                    current: currentFrame + 1,
+                    total: rotation360.frameCount,
+                  })}
                 </div>
                 <span className="text-caption uppercase tracking-[0.45em] text-text-tertiary">
-                  Drag to rotate 360°
+                  {t("modelView.dragToRotate")}
                 </span>
               </div>
             )}
@@ -487,7 +480,7 @@ export const ModelView = () => {
                 className="pointer-events-none flex items-center gap-sm rounded-badge bg-surface-elevated/80 px-md py-sm text-text-secondary backdrop-blur-sm"
               >
                 <ChevronLeft className="h-5 w-5" />
-                <span className="text-sm">Swipe</span>
+                <span className="text-sm">{t("modelView.swipe")}</span>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -495,7 +488,7 @@ export const ModelView = () => {
                 transition={{ delay: 0.5, duration: 0.5 }}
                 className="pointer-events-none flex items-center gap-sm rounded-badge bg-surface-elevated/80 px-md py-sm text-text-secondary backdrop-blur-sm"
               >
-                <span className="text-sm">to rotate</span>
+                <span className="text-sm">{t("modelView.toRotate")}</span>
                 <ChevronRight className="h-5 w-5" />
               </motion.div>
             </div>
@@ -512,7 +505,7 @@ export const ModelView = () => {
                 role="status"
                 aria-live="polite"
               >
-                Drag to rotate 360°
+                {t("modelView.dragToRotateHint")}
               </motion.div>
             )}
           </div>

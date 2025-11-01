@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 interface BrowseModelsButtonProps {
   /** Whether the browse models panel is currently shown */
   isOpen: boolean;
@@ -22,16 +24,20 @@ export const BrowseModelsButton = ({
   onClick,
   className = "",
 }: BrowseModelsButtonProps) => {
+  const { t } = useTranslation("common");
+
   return (
     <button
       type="button"
       className={`rounded-badge border border-border-focus/70 bg-primary/10 px-md py-sm text-xs font-semibold uppercase tracking-[0.45em] transition-hover hover:border-primary-hover hover:bg-primary/20 hover:text-primary-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${className}`}
       onClick={onClick}
       aria-label={
-        isOpen ? "Hide model browser panel" : "Browse available unit models"
+        isOpen
+          ? t("models.browseModelsAriaHide")
+          : t("models.browseModelsAriaShow")
       }
     >
-      {isOpen ? "Hide" : "Browse"} Models
+      {isOpen ? t("models.hideModels") : t("models.browseModels")}
     </button>
   );
 };

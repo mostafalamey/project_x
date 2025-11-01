@@ -76,8 +76,6 @@ export async function importProjectData(
         await importTours(projectId, extractedProject.tours);
       }
     );
-
-    console.log("Project import completed successfully");
   } catch (error) {
     console.error("Failed to import project:", error);
     throw new Error(
